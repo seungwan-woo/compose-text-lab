@@ -18,6 +18,7 @@ fun SettingsControls(s: LabSettings, fontName: String?, importing: Boolean,
             label = { Text("Shared sample text") }, modifier = Modifier.fillMaxWidth().testTag("sample-input"),
             minLines = 2, maxLines = 4)
         ChoiceRow("Theme", ThemeChoice.entries, s.theme) { onChange(s.copy(theme = it)) }
+        ChoiceRow("Paragraph direction", ParagraphDirection.entries, s.paragraphDirection) { onChange(s.copy(paragraphDirection = it)) }
         ChoiceRow("Font family", FontChoice.entries.filter { it != FontChoice.Imported || fontName != null }, s.font) {
             onChange(s.copy(font = it))
         }
@@ -41,12 +42,11 @@ fun SettingsControls(s: LabSettings, fontName: String?, importing: Boolean,
         }
         LabeledSlider("Max lines", s.maxLines.toFloat(), 1f..20f, steps = 18) { onChange(s.copy(maxLines = it.toInt())) }
         LabeledSlider("Padding (dp)", s.paddingDp, 0f..32f) { onChange(s.copy(paddingDp = it)) }
-        LabeledSlider("Requested panel width (dp)", s.previewWidthDp, 120f..600f) {
+        LabeledSlider("Requested panel width (dp)", s.previewWidthDp, 120f..600f, "panel-width") {
             onChange(s.copy(previewWidthDp = it))
         }
         Toggle("Include font padding", s.includeFontPadding) { onChange(s.copy(includeFontPadding = it)) }
         Toggle("End ellipsis", s.ellipsis) { onChange(s.copy(ellipsis = it)) }
-        Toggle("Side by side", s.sideBySide) { onChange(s.copy(sideBySide = it)) }
         Toggle("Show baselines", s.showBaselines) { onChange(s.copy(showBaselines = it)) }
     }
 }

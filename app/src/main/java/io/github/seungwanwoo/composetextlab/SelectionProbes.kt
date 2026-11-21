@@ -33,51 +33,57 @@ fun SelectionProbes(s: LabSettings, font: FontAsset?, composeValue: TextFieldVal
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Long press each sample to compare selection handles and the platform text menu.")
         Text("Remote toolbar routing is unverified. Logs show public API observations only.", style = MaterialTheme.typography.bodySmall)
-        ProbePanel("Compose · SelectionContainer", Modifier.fillMaxWidth()) {
-            SelectionContainer {
-                Text(s.text, style = style, modifier = Modifier.fillMaxWidth().padding(s.paddingDp.dp)
-                    .testTag("compose-selectable"))
-            }
-            Text("Selection offsets are not exposed here.", style = MaterialTheme.typography.bodySmall)
-        }
-        ProbePanel("View · selectable TextView", Modifier.fillMaxWidth().testTag("view-selectable-panel")) {
-            AndroidView(factory = { context -> TextView(context).apply {
-                tag = "view-selectable"; applySelectionStyle(this, s, font, color.toArgb())
-                text = s.text; setTextIsSelectable(true)
-                customSelectionActionModeCallback = LabActionMode(this, s.customViewMenu, onEvent)
-            } }, modifier = Modifier.fillMaxWidth())
-        }
-        ProbePanel("Compose · BasicTextField", Modifier.fillMaxWidth()) {
-            BasicTextField(value = composeValue, onValueChange = { value ->
-                if (value.selection != composeValue.selection || value.text != composeValue.text)
-                    onEvent("Compose selection=${value.selection.start}..${value.selection.end}, length=${value.text.length}")
-                onComposeValue(value)
-            }, textStyle = style,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 96.dp)
-                    .border(1.dp, MaterialTheme.colorScheme.outline).padding(s.paddingDp.dp).testTag("compose-editor"))
-            Text("selection=${composeValue.selection.start}..${composeValue.selection.end}", style = MaterialTheme.typography.bodySmall)
-        }
-        ProbePanel("View · EditText", Modifier.fillMaxWidth()) {
-            AndroidView(factory = { context -> ObservingEditText(context).apply {
-                tag = "view-editor"; applySelectionStyle(this, s, font, color.toArgb())
-                setText(viewValue.text)
-                setSelection(viewValue.selection.start.coerceIn(0, text.length), viewValue.selection.end.coerceIn(0, text.length))
-                onSelection = { start, end ->
-                    viewChanged(TextFieldValue(text.toString(), TextRange(start.coerceAtLeast(0), end.coerceAtLeast(0))))
-                    onEvent("EditText selection=$start..$end, length=${text.length}")
+        ProbePair(s, compose = {
+            ProbePanel("Compose · SelectionContainer", Modifier.fillMaxWidth().testTag("compose-selectable-panel")) {
+                SelectionContainer {
+                    Text(s.text, style = style, modifier = Modifier.fillMaxWidth().padding(s.paddingDp.dp)
+                        .testTag("compose-selectable"))
                 }
-                addTextChangedListener(object : TextWatcher {
-                    override fun beforeTextChanged(text: CharSequence?, start: Int, count: Int, after: Int) = Unit
-                    override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) = Unit
-                    override fun afterTextChanged(text: Editable?) {
-                        viewChanged(TextFieldValue(text?.toString().orEmpty(), TextRange(selectionStart.coerceAtLeast(0), selectionEnd.coerceAtLeast(0))))
-                        onEvent("EditText changed, length=${text?.length ?: 0}")
+                Text("Selection offsets are not exposed here.", style = MaterialTheme.typography.bodySmall)
+            }
+        }, view = {
+            ProbePanel("View · selectable TextView", Modifier.fillMaxWidth().testTag("view-selectable-panel")) {
+                AndroidView(factory = { context -> TextView(context).apply {
+                    tag = "view-selectable"; applySelectionStyle(this, s, font, color.toArgb())
+                    text = s.text; setTextIsSelectable(true)
+                    customSelectionActionModeCallback = LabActionMode(this, s.customViewMenu, onEvent)
+                } }, modifier = Modifier.fillMaxWidth())
+            }
+        })
+        ProbePair(s, compose = {
+            ProbePanel("Compose · BasicTextField", Modifier.fillMaxWidth()) {
+                BasicTextField(value = composeValue, onValueChange = { value ->
+                    if (value.selection != composeValue.selection || value.text != composeValue.text)
+                        onEvent("Compose selection=${value.selection.start}..${value.selection.end}, length=${value.text.length}")
+                    onComposeValue(value)
+                }, textStyle = style,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 96.dp)
+                        .border(1.dp, MaterialTheme.colorScheme.outline).padding(s.paddingDp.dp).testTag("compose-editor"))
+                Text("selection=${composeValue.selection.start}..${composeValue.selection.end}", style = MaterialTheme.typography.bodySmall)
+            }
+        }, view = {
+            ProbePanel("View · EditText", Modifier.fillMaxWidth()) {
+                AndroidView(factory = { context -> ObservingEditText(context).apply {
+                    tag = "view-editor"; applySelectionStyle(this, s, font, color.toArgb())
+                    setText(viewValue.text)
+                    setSelection(viewValue.selection.start.coerceIn(0, text.length), viewValue.selection.end.coerceIn(0, text.length))
+                    onSelection = { start, end ->
+                        viewChanged(TextFieldValue(text.toString(), TextRange(start.coerceAtLeast(0), end.coerceAtLeast(0))))
+                        onEvent("EditText selection=$start..$end, length=${text.length}")
                     }
-                })
-                customSelectionActionModeCallback = LabActionMode(this, s.customViewMenu, onEvent)
-                customInsertionActionModeCallback = LabActionMode(this, s.customViewMenu, onEvent)
-            } }, modifier = Modifier.fillMaxWidth().heightIn(min = 96.dp))
-        }
+                    addTextChangedListener(object : TextWatcher {
+                        override fun beforeTextChanged(text: CharSequence?, start: Int, count: Int, after: Int) = Unit
+                        override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) = Unit
+                        override fun afterTextChanged(text: Editable?) {
+                            viewChanged(TextFieldValue(text?.toString().orEmpty(), TextRange(selectionStart.coerceAtLeast(0), selectionEnd.coerceAtLeast(0))))
+                            onEvent("EditText changed, length=${text?.length ?: 0}")
+                        }
+                    })
+                    customSelectionActionModeCallback = LabActionMode(this, s.customViewMenu, onEvent)
+                    customInsertionActionModeCallback = LabActionMode(this, s.customViewMenu, onEvent)
+                } }, modifier = Modifier.fillMaxWidth().heightIn(min = 96.dp))
+            }
+        })
         Text("Last 60 public API events", style = MaterialTheme.typography.titleSmall)
         if (events.isEmpty()) Text("No events yet. Select or edit text above.")
         events.takeLast(60).asReversed().forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
@@ -89,6 +95,7 @@ private fun applySelectionStyle(view: TextView, s: LabSettings, font: FontAsset?
     setTextSize(TypedValue.COMPLEX_UNIT_SP, s.fontSizeSp)
     setTextColor(color)
     includeFontPadding = s.includeFontPadding; letterSpacing = s.letterSpacingEm
+    applyProbeParagraphStyle(s.paragraphDirection)
     val p = (s.paddingDp * resources.displayMetrics.density).toInt()
     setPadding(p, p, p, p)
     if (s.lineHeightSp > 0) setLineSpacing(

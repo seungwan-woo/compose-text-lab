@@ -15,7 +15,9 @@ import androidx.test.espresso.action.Tap
 import androidx.test.espresso.matcher.ViewMatchers.withTagValue
 import androidx.test.platform.app.InstrumentationRegistry
 import java.io.File
+import kotlin.math.abs
 import org.hamcrest.CoreMatchers.equalTo
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -28,7 +30,12 @@ class ResultCaptureTest {
         rule.onNodeWithText("Reset settings").performScrollTo().performClick()
         rule.onNodeWithText("Theme").performScrollTo()
         rule.onNodeWithText("Light").performClick().assertIsSelected()
+        rule.onNodeWithTag("panel-width").performScrollTo()
+            .performSemanticsAction(SemanticsActions.SetProgress) { it(420f) }
         rule.onNodeWithText("Hide settings").performClick()
+        rule.onNodeWithTag("side-by-side").performScrollTo().performClick().assertIsOn()
+        selectTab("Effects")
+        selectTab("Render")
         rule.onNodeWithTag("compose-probe").assertIsDisplayed()
         capture("render")
 
@@ -56,6 +63,10 @@ class ResultCaptureTest {
         automation.serviceInfo = serviceInfo
         try {
             selectTab("Selection")
+            val compose = rule.onNodeWithTag("compose-selectable-panel").fetchSemanticsNode().boundsInRoot
+            val view = rule.onNodeWithTag("view-selectable-panel").fetchSemanticsNode().boundsInRoot
+            assertTrue("Compose and TextView must have equal widths on the same row",
+                compose.right < view.left && compose.top == view.top && abs(compose.width - view.width) <= 1f)
             rule.onNodeWithTag("compose-selectable").assertIsDisplayed().performTouchInput {
                 longClick(Offset(width * 0.15f, height * 0.15f))
             }

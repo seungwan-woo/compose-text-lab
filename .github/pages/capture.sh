@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-adb shell wm size 1080x2340
-adb shell wm density 360
+adb shell wm size 1800x1900
+adb shell wm density 320
 ./gradlew --no-daemon :app:connectedDebugAndroidTest
 
 capture_dir=build/ci-pages/screenshots

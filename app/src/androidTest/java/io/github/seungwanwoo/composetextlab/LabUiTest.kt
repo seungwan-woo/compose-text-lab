@@ -1,8 +1,11 @@
 package io.github.seungwanwoo.composetextlab
 
 import android.widget.TextView
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.style.ResolvedTextDirection
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
@@ -13,6 +16,26 @@ class LabUiTest {
 
     @Before fun resetExperimentSettings() {
         rule.onNodeWithText("Reset settings").performScrollTo().performClick()
+    }
+
+    @Test fun mixedScriptParagraphsUseTheSameDirectionInBothEngines() {
+        val sample = "English\nالعربية 日本語"
+        rule.onNodeWithTag("sample-input").performScrollTo().performTextReplacement(sample)
+        rule.onNodeWithText("Hide settings").performClick()
+        rule.onNodeWithText("Effects", useUnmergedTree = true).performClick()
+        rule.onNodeWithText("Render", useUnmergedTree = true).performClick()
+        val layout = mutableListOf<TextLayoutResult>()
+        rule.onNodeWithTag("compose-probe").performSemanticsAction(SemanticsActions.GetTextLayoutResult) {
+            assertTrue(it(layout))
+        }
+        val arabicOffset = sample.indexOf('\n') + 1
+        assertEquals(ResolvedTextDirection.Ltr, layout.single().getParagraphDirection(0))
+        assertEquals(ResolvedTextDirection.Rtl, layout.single().getParagraphDirection(arabicOffset))
+        rule.runOnIdle {
+            val view = rule.activity.window.decorView.findViewWithTag<TextView>("view-probe")
+            assertEquals(1, view.layout.getParagraphDirection(0))
+            assertEquals(-1, view.layout.getParagraphDirection(view.layout.getLineForOffset(arabicOffset)))
+        }
     }
 
     @Test fun sharedTextAndScaleReachBothEnginesAndSurviveRecreation() {

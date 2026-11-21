@@ -5,11 +5,13 @@ import org.json.JSONObject
 enum class ThemeChoice { System, Light, Dark, Dynamic }
 enum class FontChoice { System, Sans, Serif, Monospace, Imported }
 enum class TextEffect { None, Shadow, Gradient, Stroke, Marquee }
+enum class ParagraphDirection { FirstStrong, LTR, RTL }
 
 data class LabSettings(
     val text: String = "Compose ↔ TextView\n한글 기준선 Ag 0123 🙂\nالعربية 日本語 — text layout comparison",
     val theme: ThemeChoice = ThemeChoice.System,
     val font: FontChoice = FontChoice.System,
+    val paragraphDirection: ParagraphDirection = ParagraphDirection.FirstStrong,
     val fontSizeSp: Float = 24f,
     val weight: Int = 400,
     val letterSpacingEm: Float = 0f,
@@ -43,6 +45,7 @@ data class LabSettings(
 
     fun toJson(): JSONObject = JSONObject().apply {
         put("text", text); put("theme", theme.name); put("font", font.name)
+        put("paragraphDirection", paragraphDirection.name)
         put("fontSizeSp", fontSizeSp); put("weight", weight); put("letterSpacingEm", letterSpacingEm)
         put("lineHeightSp", lineHeightSp); put("includeFontPadding", includeFontPadding)
         put("maxLines", maxLines); put("ellipsis", ellipsis); put("paddingDp", paddingDp)
@@ -59,6 +62,8 @@ data class LabSettings(
                 text = j.optString("text", d.text),
                 theme = ThemeChoice.valueOf(j.optString("theme", d.theme.name)),
                 font = FontChoice.valueOf(j.optString("font", d.font.name)),
+                paragraphDirection = ParagraphDirection.entries.firstOrNull { it.name == j.optString("paragraphDirection") }
+                    ?: d.paragraphDirection,
                 fontSizeSp = j.optDouble("fontSizeSp", 24.0).toFloat(),
                 weight = j.optInt("weight", 400),
                 letterSpacingEm = j.optDouble("letterSpacingEm", 0.0).toFloat(),
