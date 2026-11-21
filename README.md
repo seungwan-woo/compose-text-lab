@@ -57,6 +57,6 @@ TTF/OTF는 앱 내부에 복사하여 재실행 시 복원합니다. 20 MiB 제�
 
 ## 검증 범위
 
-CI는 JVM 단위 테스트, Android Lint, debug APK 및 Android 테스트 APK 컴파일을 실행합니다. CI 워크플로는 단말 UI 테스트를 실행하지 않습니다. 실제 UI 테스트 결과와 빌드 결과는 PR에 기록합니다. 에뮬레이터 성공은 Samsung One UI 단말의 toolbar, FlipFont, IME 또는 시스템 서비스 동작을 보증하지 않습니다.
+CI는 JVM 단위 테스트, Android Lint, debug APK 및 Android 테스트 APK 빌드와 API 36 에뮬레이터 테스트를 실행합니다. 렌더링, 다크 테마·fontScale 1.6, 그라데이션, 두 엔진의 텍스트 선택 메뉴를 캡처합니다. PR에서는 `android-results-page` 아티팩트를 내려받아 결과를 볼 수 있습니다. `main`에서 성공한 결과는 [GitHub Pages](https://seungwan-woo.github.io/compose-text-lab/)에 게시합니다. 저장소의 Settings → Pages → Source는 **GitHub Actions**로 설정해야 합니다. 에뮬레이터 성공은 Samsung One UI 단말의 toolbar, FlipFont, IME 또는 시스템 서비스 동작을 보증하지 않습니다.
 
 로컬 검증은 **단위 테스트 8개 + API 36 통합 테스트 5개 통과**, **Lint 오류 0개(경고 17개)**입니다. 세부 범위와 제한은 [검증 기록](docs/validation.md)에 있습니다.

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Compose Text Lab · Android 실험 결과</title>
+<style>
+  :root { color-scheme: light dark; --accent: light-dark(#5147aa, #c6bcff); }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: light-dark(#f5f4fa, #15141d); color: light-dark(#1d1b29, #f0eef9);
+         font: 1rem/1.6 system-ui, sans-serif; }
+  main { max-width: 72rem; padding: clamp(1.2rem, 4vw, 3rem); margin: auto; }
+  h1 { font-size: clamp(2rem, 6vw, 3.6rem); line-height: 1.1; margin: .35rem 0 .8rem; }
+  h2 { margin: 2rem 0 .5rem; }
+  p { max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: .2em; }
+  .links { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1.25rem; }
+  figure { margin: 0; padding: 1rem; background: light-dark(white, #211f2d); border-radius: 1rem; }
+  figcaption span { display: block; margin: .25rem 0 .8rem; font-size: .9rem; }
+  figure a { display: block; }
+  img { display: block; width: 100%; height: auto; border-radius: .5rem; }
+</style>
+<main>
+  <header>
+    <div>Android 16 · API 36 에뮬레이터</div>
+    <h1>Compose Text Lab</h1>
+    <p>Jetpack Compose Text와 Android TextView를 같은 조건에서 실행한 결과입니다.
+       디버그 APK 빌드, 단위 테스트, Lint 및 Android 기기 테스트가 통과했습니다.</p>
+    <nav class="links" aria-label="빌드 결과">
+      <a href="{{RUN_URL}}">GitHub Actions 실행</a>
+      <a href="{{RUN_URL}}#artifacts">APK 및 테스트 리포트</a>
+      <a href="{{COMMIT_URL}}">소스 {{SHORT_SHA}}</a>
+    </nav>
+  </header>
+  <section aria-labelledby="captures">
+    <h2 id="captures">화면 캡처</h2>
+    <p>선택 메뉴는 이 에뮬레이터에서 관찰한 결과입니다. OEM 단말 동작과 시스템 내부의 원격 렌더링 경로는 별도 확인이 필요합니다.</p>
+    <div class="gallery">
+{{CARDS}}
+    </div>
+  </section>
+</main>
+</html>
