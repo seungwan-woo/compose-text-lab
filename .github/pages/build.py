@@ -18,6 +18,21 @@ TOOLBARS = (
     ("view-selection", "TextView 선택 메뉴", "오른쪽 TextView에서 같은 단어를 선택합니다."),
 )
 
+MOUSE_MENUS = (
+    ("compose-right-click", "Compose 우클릭", "SelectionContainer에 마우스 보조 버튼 이벤트를 보냅니다."),
+    ("view-right-click", "TextView 우클릭", "선택 가능한 TextView에 같은 종류의 입력을 보냅니다."),
+)
+
+OVERFLOW = (
+    ("overflow-ellipsis", "한 줄 · 말줄임", "두 엔진 모두 끝에 말줄임표를 표시합니다."),
+    ("overflow-clip", "한 줄 · 잘라내기", "줄 수 제한을 넘는 내용은 잘라냅니다."),
+)
+
+MARQUEE = (
+    ("marquee-start", "Marquee · 첫 프레임", "두 엔진에 같은 한 줄 문자열을 표시합니다."),
+    ("marquee-moving", "Marquee · 나중 프레임", "두 패널의 텍스트 위치가 바뀌었는지 검사했습니다."),
+)
+
 
 def screenshot_card(site: Path, scene: str, title: str, caption: str) -> str:
     image = f"screenshots/{scene}.png"
@@ -39,14 +54,13 @@ def main() -> None:
     repo = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}"
     run = f"{repo}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
     sha = os.environ["GITHUB_SHA"]
-    cards = "\n".join(screenshot_card(site, *scene) for scene in SCENES)
-    toolbars = "\n".join(screenshot_card(site, *scene) for scene in TOOLBARS)
     template = Path(__file__).with_name("index.html").read_text(encoding="utf-8")
     report = (template.replace("{{RUN_URL}}", escape(run))
               .replace("{{COMMIT_URL}}", escape(f"{repo}/commit/{sha}"))
-              .replace("{{SHORT_SHA}}", escape(sha[:7]))
-              .replace("{{CARDS}}", cards)
-              .replace("{{TOOLBARS}}", toolbars))
+              .replace("{{SHORT_SHA}}", escape(sha[:7])))
+    for label, scenes in (("CARDS", SCENES), ("TOOLBARS", TOOLBARS), ("MOUSE_MENUS", MOUSE_MENUS),
+                          ("OVERFLOW", OVERFLOW), ("MARQUEE", MARQUEE)):
+        report = report.replace(f"{{{{{label}}}}}", "\n".join(screenshot_card(site, *scene) for scene in scenes))
     (site / "index.html").write_text(report, encoding="utf-8")
 
 

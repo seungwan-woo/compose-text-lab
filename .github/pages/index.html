@@ -43,6 +43,27 @@
     </div>
     <p>OEM 단말 동작과 시스템 내부의 원격 렌더링 경로는 별도 확인이 필요합니다.</p>
   </section>
+  <section aria-labelledby="mouse-menus">
+    <h2 id="mouse-menus">마우스 우클릭 컨텍스트 메뉴</h2>
+    <p>Android 마우스 이벤트를 보내 양쪽 메뉴에 ‘Select all’이 표시되는지 확인했습니다.</p>
+    <div class="toolbar-pair">
+{{MOUSE_MENUS}}
+    </div>
+  </section>
+  <section aria-labelledby="overflow">
+    <h2 id="overflow">Overflow · 말줄임과 잘라내기</h2>
+    <p>짧은 문장이 한 줄에 들어가는 경우와 긴 문장이 한 줄 제한을 넘는 경우를 검증했습니다.</p>
+    <div class="gallery">
+{{OVERFLOW}}
+    </div>
+  </section>
+  <section aria-labelledby="marquee">
+    <h2 id="marquee">Marquee · 가로 스크롤</h2>
+    <p>같은 긴 문장에 Compose는 <code>basicMarquee</code>를, TextView는 <code>ellipsize=MARQUEE</code>를 적용했습니다.</p>
+    <div class="toolbar-pair">
+{{MARQUEE}}
+    </div>
+  </section>
   <section aria-labelledby="rendering">
     <h2 id="rendering">렌더링 좌우 비교</h2>
     <p>Compose와 TextView에 같은 문단 방향을 적용했습니다. 기본 설정은 문단의 첫 강한 문자를 따릅니다.</p>

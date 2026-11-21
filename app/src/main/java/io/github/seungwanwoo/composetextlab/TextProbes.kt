@@ -130,7 +130,8 @@ fun ProbePanel(title: String, modifier: Modifier = Modifier, content: @Composabl
 fun ComparisonProbes(s: LabSettings, font: FontAsset?, onMeasure: (ProbeMeasurement) -> Unit) {
     val color = MaterialTheme.colorScheme.onSurface
     val compose: @Composable () -> Unit = {
-        ProbePanel("Compose Text", Modifier.widthIn(max = s.previewWidthDp.dp).fillMaxWidth()) {
+        ProbePanel("Compose Text", Modifier.widthIn(max = s.previewWidthDp.dp).fillMaxWidth()
+            .testTag("compose-render-panel")) {
             ComposeProbe(s, font, onMeasure)
         }
     }
