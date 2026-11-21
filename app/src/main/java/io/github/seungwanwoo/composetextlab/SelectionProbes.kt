@@ -40,7 +40,7 @@ fun SelectionProbes(s: LabSettings, font: FontAsset?, composeValue: TextFieldVal
             }
             Text("Selection offsets are not exposed here.", style = MaterialTheme.typography.bodySmall)
         }
-        ProbePanel("View · selectable TextView", Modifier.fillMaxWidth()) {
+        ProbePanel("View · selectable TextView", Modifier.fillMaxWidth().testTag("view-selectable-panel")) {
             AndroidView(factory = { context -> TextView(context).apply {
                 tag = "view-selectable"; applySelectionStyle(this, s, font, color.toArgb())
                 text = s.text; setTextIsSelectable(true)

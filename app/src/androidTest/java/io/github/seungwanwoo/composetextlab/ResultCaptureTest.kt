@@ -63,6 +63,7 @@ class ResultCaptureTest {
 
             selectTab("Render")
             selectTab("Selection")
+            rule.onNodeWithTag("view-selectable-panel").performScrollTo()
             onView(withTagValue(equalTo<Any>("view-selectable"))).perform(
                 GeneralClickAction(Tap.LONG, CoordinatesProvider { view ->
                     val location = IntArray(2).also(view::getLocationOnScreen)
