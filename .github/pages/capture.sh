@@ -2,9 +2,14 @@
 set -euo pipefail
 
 android_release=$(adb shell getprop ro.build.version.release | tr -d '\r')
-api_major=$(adb shell getprop ro.build.version.sdk | tr -d '\r')
-api_minor=$(adb shell getprop ro.build.version.sdk_minor | tr -d '\r')
-runtime_api="$api_major.${api_minor:-0}"
+runtime_api=$(adb shell getprop ro.build.version.sdk_full | tr -d '\r')
+if [[ -z "$runtime_api" ]]; then
+  api_major=$(adb shell getprop ro.build.version.sdk | tr -d '\r')
+  api_minor=$(adb shell getprop ro.build.version.sdk_minor | tr -d '\r')
+  runtime_api="$api_major.${api_minor:-0}"
+elif [[ "$runtime_api" != *.* ]]; then
+  runtime_api+=.0
+fi
 if [[ "$runtime_api" != "$ANDROID_TEST_API" ]]; then
   echo "Expected Android API $ANDROID_TEST_API, but the booted emulator reports $runtime_api" >&2
   exit 1
