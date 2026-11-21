@@ -16,6 +16,8 @@ jobs:
   debug:
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    env:
+      ANDROID_TEST_API: '37.2'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -53,9 +55,9 @@ jobs:
       - name: Run Android tests and capture comparison screens
         uses: reactivecircus/android-emulator-runner@v2.38.0
         with:
-          api-level: 36
+          api-level: ${{ env.ANDROID_TEST_API }}
           arch: x86_64
-          target: google_apis
+          target: google_apis_ps16k
           profile: pixel_7
           script: bash .github/pages/capture.sh
       - name: Build the results page

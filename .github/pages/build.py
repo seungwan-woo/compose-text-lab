@@ -55,8 +55,12 @@ def main() -> None:
     run = f"{repo}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
     sha = os.environ["GITHUB_SHA"]
     template = Path(__file__).with_name("index.html").read_text(encoding="utf-8")
+    runtime = (site / "runtime.txt").read_text(encoding="utf-8").strip()
+    if not runtime:
+        raise ValueError("Missing emulator version in runtime.txt")
     report = (template.replace("{{RUN_URL}}", escape(run))
               .replace("{{COMMIT_URL}}", escape(f"{repo}/commit/{sha}"))
+              .replace("{{ANDROID_RUNTIME}}", escape(runtime))
               .replace("{{SHORT_SHA}}", escape(sha[:7])))
     for label, scenes in (("CARDS", SCENES), ("TOOLBARS", TOOLBARS), ("MOUSE_MENUS", MOUSE_MENUS),
                           ("OVERFLOW", OVERFLOW), ("MARQUEE", MARQUEE)):

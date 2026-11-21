@@ -61,7 +61,7 @@ Rich text 탭과 자동 검증의 범위는 [AnnotatedString과 Spannable](docs/
 
 ## 검증 범위
 
-CI는 JVM 단위 테스트, Android Lint, debug APK 및 Android 테스트 APK 빌드와 API 36 에뮬레이터 테스트를 실행합니다. 렌더링, 다크 테마·fontScale 1.6, 그라데이션, 두 엔진의 텍스트 선택 메뉴를 캡처합니다. PR에서는 `android-results-page` 아티팩트를 내려받아 결과를 볼 수 있습니다. `main`에서 성공한 결과는 [GitHub Pages](https://seungwan-woo.github.io/compose-text-lab/)에 게시합니다. 저장소의 Settings → Pages → Source는 **GitHub Actions**로 설정해야 합니다. 에뮬레이터 성공은 Samsung One UI 단말의 toolbar, FlipFont, IME 또는 시스템 서비스 동작을 보증하지 않습니다.
+CI는 JVM 단위 테스트, Android Lint, debug APK 및 Android 테스트 APK 빌드와 **API 37.2 에뮬레이터 테스트**(Google APIs x86_64, 16 KB 이미지)를 실행합니다. `compileSdk`와 `targetSdk`는 36이며, 보고서에는 부팅한 에뮬레이터에서 읽은 API 버전을 표시합니다. PR에서는 `android-results-page`와 `rich-text-comparison` 아티팩트를 내려받아 결과를 볼 수 있습니다. `main`에서 성공한 결과는 [GitHub Pages](https://seungwan-woo.github.io/compose-text-lab/)에 게시합니다. 저장소의 Settings → Pages → Source는 **GitHub Actions**로 설정해야 합니다. 에뮬레이터 성공은 Samsung One UI 단말의 toolbar, FlipFont, IME 또는 시스템 서비스 동작을 보증하지 않습니다.
 
 선택 메뉴는 터치 길게 누르기와 마우스 우클릭을 별도로 검증합니다. Overflow는 한 줄에 들어가는 텍스트, 끝 말줄임, 말줄임 없는 잘라내기를 검증합니다. Marquee는 두 프레임을 비교해 양쪽 텍스트가 실제로 움직이는지 검사합니다. 두 엔진 모두 지원하지만 시작 조건과 속도 설정은 다릅니다. [Compose 전용 텍스트 API와 View 대안](docs/effects-selection-toolbar.md#compose-텍스트-api와-view-대안)을 참고하세요.
 
