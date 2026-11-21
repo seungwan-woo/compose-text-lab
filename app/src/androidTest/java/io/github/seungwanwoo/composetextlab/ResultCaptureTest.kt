@@ -56,7 +56,7 @@ class ResultCaptureTest {
         automation.serviceInfo = serviceInfo
         try {
             selectTab("Selection")
-            rule.onNodeWithText(LabSettings().text).assertIsDisplayed().performTouchInput {
+            rule.onNodeWithTag("compose-selectable").assertIsDisplayed().performTouchInput {
                 longClick(Offset(width * 0.15f, height * 0.15f))
             }
             captureToolbar("compose-selection")
