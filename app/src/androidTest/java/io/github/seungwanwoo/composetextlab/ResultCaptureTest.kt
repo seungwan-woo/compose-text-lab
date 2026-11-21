@@ -1,8 +1,8 @@
 package io.github.seungwanwoo.composetextlab
 
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.graphics.Bitmap
 import android.view.accessibility.AccessibilityNodeInfo
-import android.view.accessibility.AccessibilityServiceInfo
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
