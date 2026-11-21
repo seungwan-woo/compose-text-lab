@@ -116,12 +116,9 @@ fun LabApp() {
         events.add("$time $event")
         if (events.size > 60) events.removeAt(0)
     }
-    val sdk = Build.VERSION.SDK_INT
-    val sdkFull = if (sdk >= Build.VERSION_CODES.BAKLAVA) {
-        "$sdk.${Build.getMinorSdkVersion(Build.VERSION.SDK_INT_FULL)}"
-    } else sdk.toString()
+    val sdkFull = androidSdkVersion()
     val environment = mapOf(
-        "manufacturer" to Build.MANUFACTURER, "model" to Build.MODEL, "sdk" to sdk.toString(), "sdkFull" to sdkFull,
+        "manufacturer" to Build.MANUFACTURER, "model" to Build.MODEL, "sdk" to Build.VERSION.SDK_INT.toString(), "sdkFull" to sdkFull,
         "osRelease" to Build.VERSION.RELEASE, "fingerprint" to Build.FINGERPRINT,
         "systemFontScale" to configuration.fontScale.toString(),
         "previewFontScale" to previewContext.resources.configuration.fontScale.toString(),
@@ -236,4 +233,12 @@ fun LabApp() {
             }
         }
     }
+}
+
+// Lint 8.13 treats this argument as a fixed list, but SDK_INT_FULL is the documented runtime value.
+@android.annotation.SuppressLint("WrongConstant")
+private fun androidSdkVersion(): String {
+    val major = Build.VERSION.SDK_INT
+    if (major < Build.VERSION_CODES.BAKLAVA) return major.toString()
+    return "$major.${Build.getMinorSdkVersion(Build.VERSION.SDK_INT_FULL)}"
 }
