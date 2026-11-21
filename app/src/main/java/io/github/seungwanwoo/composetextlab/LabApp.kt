@@ -155,6 +155,9 @@ fun LabApp() {
                         if (status.isNotBlank()) Text(status, style = MaterialTheme.typography.bodySmall)
                         Text("System fontScale ${configuration.fontScale} · Preview ${previewConfiguration.fontScale} · API ${Build.VERSION.SDK_INT}",
                             style = MaterialTheme.typography.labelMedium)
+                        if (tab != LabTab.Report) {
+                            Toggle("Side by side", s.sideBySide, "side-by-side") { change(s.copy(sideBySide = it)) }
+                        }
                         when (tab) {
                             LabTab.Render, LabTab.Effects -> {
                                 if (tab == LabTab.Effects) {

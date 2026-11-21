@@ -8,11 +8,14 @@ from pathlib import Path
 
 
 SCENES = (
-    ("render", "기본 렌더링", "같은 다국어 샘플을 Compose Text와 TextView로 표시합니다."),
+    ("render", "기본 렌더링", "왼쪽 Compose, 오른쪽 TextView에 같은 문단 방향 규칙을 적용합니다."),
     ("dark-font-scale", "다크 테마 · fontScale 1.6", "두 엔진에 같은 미리보기 배율을 적용합니다."),
     ("gradient", "그라데이션", "같은 텍스트에 적용된 색상 변화를 비교합니다."),
-    ("compose-selection", "Compose 선택 메뉴", "SelectionContainer에서 길게 눌러 텍스트를 선택합니다."),
-    ("view-selection", "TextView 선택 메뉴", "선택 가능한 TextView에서 길게 눌러 텍스트를 선택합니다."),
+)
+
+TOOLBARS = (
+    ("compose-selection", "Compose 선택 메뉴", "왼쪽 SelectionContainer에서 같은 단어를 선택합니다."),
+    ("view-selection", "TextView 선택 메뉴", "오른쪽 TextView에서 같은 단어를 선택합니다."),
 )
 
 
@@ -37,11 +40,13 @@ def main() -> None:
     run = f"{repo}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
     sha = os.environ["GITHUB_SHA"]
     cards = "\n".join(screenshot_card(site, *scene) for scene in SCENES)
+    toolbars = "\n".join(screenshot_card(site, *scene) for scene in TOOLBARS)
     template = Path(__file__).with_name("index.html").read_text(encoding="utf-8")
     report = (template.replace("{{RUN_URL}}", escape(run))
               .replace("{{COMMIT_URL}}", escape(f"{repo}/commit/{sha}"))
               .replace("{{SHORT_SHA}}", escape(sha[:7]))
-              .replace("{{CARDS}}", cards))
+              .replace("{{CARDS}}", cards)
+              .replace("{{TOOLBARS}}", toolbars))
     (site / "index.html").write_text(report, encoding="utf-8")
 
 

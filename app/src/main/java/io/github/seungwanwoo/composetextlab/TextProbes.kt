@@ -10,6 +10,7 @@ import android.os.Build
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.View
 import android.widget.TextView
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
@@ -26,6 +27,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.PlatformTextStyle
@@ -34,11 +36,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineBreak
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlin.math.roundToInt
 
@@ -70,10 +75,46 @@ fun probeStyle(s: LabSettings, font: FontAsset?): TextStyle {
         lineHeight = if (s.lineHeightSp == 0f) androidx.compose.ui.unit.TextUnit.Unspecified else s.lineHeightSp.sp,
         platformStyle = PlatformTextStyle(includeFontPadding = s.includeFontPadding),
         lineBreak = LineBreak.Simple,
+        textAlign = TextAlign.Start,
+        textDirection = when (s.paragraphDirection) {
+            ParagraphDirection.FirstStrong -> TextDirection.Content
+            ParagraphDirection.LTR -> TextDirection.Ltr
+            ParagraphDirection.RTL -> TextDirection.Rtl
+        },
         shadow = if (s.effect == TextEffect.Shadow) Shadow(Color.Gray,
             with(density) { Offset(2.dp.toPx(), 2.dp.toPx()) }, with(density) { 3.dp.toPx() }) else null,
         drawStyle = if (s.effect == TextEffect.Stroke) Stroke(with(density) { 1.dp.toPx() }) else null,
     ).let { if (s.effect == TextEffect.Gradient) it.copy(brush = Brush.horizontalGradient(listOf(Color(0xFF2364E8), Color(0xFFE23F86)))) else it } }
+}
+
+internal fun TextView.applyProbeParagraphStyle(direction: ParagraphDirection) {
+    textDirection = when (direction) {
+        ParagraphDirection.FirstStrong -> View.TEXT_DIRECTION_FIRST_STRONG
+        ParagraphDirection.LTR -> View.TEXT_DIRECTION_LTR
+        ParagraphDirection.RTL -> View.TEXT_DIRECTION_RTL
+    }
+    textAlignment = View.TEXT_ALIGNMENT_TEXT_START
+    // These TextView setters are available since API 23.
+    breakStrategy = android.graphics.text.LineBreaker.BREAK_STRATEGY_SIMPLE
+    hyphenationFrequency = android.text.Layout.HYPHENATION_FREQUENCY_NONE
+}
+
+@Composable
+internal fun ProbePair(s: LabSettings, compose: @Composable () -> Unit, view: @Composable () -> Unit) {
+    if (s.sideBySide) {
+        val direction = LocalLayoutDirection.current
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            Row(Modifier.widthIn(max = (s.previewWidthDp * 2 + 8).dp).fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                CompositionLocalProvider(LocalLayoutDirection provides direction) {
+                    Box(Modifier.weight(1f)) { compose() }
+                    Box(Modifier.weight(1f)) { view() }
+                }
+            }
+        }
+    } else {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { compose(); view() }
+    }
 }
 
 @Composable
@@ -104,9 +145,7 @@ fun ComparisonProbes(s: LabSettings, font: FontAsset?, onMeasure: (ProbeMeasurem
             }, modifier = Modifier.fillMaxWidth())
         }
     }
-    if (s.sideBySide) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Box(Modifier.weight(1f)) { compose() }; Box(Modifier.weight(1f)) { view() }
-    } else Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { compose(); view() }
+    ProbePair(s, compose, view)
 }
 
 @Composable
@@ -158,9 +197,7 @@ class MeasuredTextView(context: Context) : TextView(context) {
         includeFontPadding = s.includeFontPadding
         letterSpacing = s.letterSpacingEm
         gravity = Gravity.TOP or Gravity.START
-        // Inlined constants (0): these TextView setters exist since API 23.
-        breakStrategy = android.graphics.text.LineBreaker.BREAK_STRATEGY_SIMPLE
-        hyphenationFrequency = android.text.Layout.HYPHENATION_FREQUENCY_NONE
+        applyProbeParagraphStyle(s.paragraphDirection)
         val padding = (s.paddingDp * resources.displayMetrics.density).roundToInt()
         setPadding(padding, padding, padding, padding)
         if (s.lineHeightSp > 0) {

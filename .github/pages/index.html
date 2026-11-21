@@ -15,10 +15,12 @@
   p { max-width: 68ch; }
   a { color: var(--accent); text-underline-offset: .2em; }
   .links { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; }
-  .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1.25rem; }
-  figure { margin: 0; padding: 1rem; background: light-dark(white, #211f2d); border-radius: 1rem; }
+  .gallery, .toolbar-pair { display: grid; gap: clamp(.5rem, 2vw, 1.25rem); }
+  .toolbar-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  figure { display: flex; flex-direction: column; margin: 0; padding: clamp(.5rem, 2vw, 1rem);
+           background: light-dark(white, #211f2d); border-radius: 1rem; }
   figcaption span { display: block; margin: .25rem 0 .8rem; font-size: .9rem; }
-  figure a { display: block; }
+  figure a { display: block; margin-top: auto; }
   img { display: block; width: 100%; height: auto; border-radius: .5rem; }
 </style>
 <main>
@@ -34,8 +36,16 @@
     </nav>
   </header>
   <section aria-labelledby="captures">
-    <h2 id="captures">화면 캡처</h2>
-    <p>선택 메뉴는 이 에뮬레이터에서 관찰한 결과입니다. OEM 단말 동작과 시스템 내부의 원격 렌더링 경로는 별도 확인이 필요합니다.</p>
+    <h2 id="captures">선택 메뉴 좌우 비교</h2>
+    <p>두 엔진에서 같은 단어를 선택했습니다. 메뉴 항목은 선택 범위와 텍스트 분류 결과에 따라 달라질 수 있습니다. 이미지를 누르면 원본 크기로 볼 수 있습니다.</p>
+    <div class="toolbar-pair">
+{{TOOLBARS}}
+    </div>
+    <p>OEM 단말 동작과 시스템 내부의 원격 렌더링 경로는 별도 확인이 필요합니다.</p>
+  </section>
+  <section aria-labelledby="rendering">
+    <h2 id="rendering">렌더링 좌우 비교</h2>
+    <p>Compose와 TextView에 같은 문단 방향을 적용했습니다. 기본 설정은 문단의 첫 강한 문자를 따릅니다.</p>
     <div class="gallery">
 {{CARDS}}
     </div>

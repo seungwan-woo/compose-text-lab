@@ -33,7 +33,7 @@ Windows에서는 `gradlew.bat`를 사용합니다. SDK는 `ANDROID_HOME` 또는 
 | Selection | SelectionContainer, BasicTextField, TextView, EditText, View 커스텀 ActionMode 메뉴, 선택 offset/ActionMode 이벤트 로그 |
 | Report | 실제 레이아웃/위젯 px 치수, 줄 수, 첫/마지막 baseline, ellipsis/overflow, 단말/설정/폰트 식별자; JSON 복사/파일 저장 |
 
-설정 패널은 앱 상단에서 접고 펼칠 수 있습니다. 실험 너비는 사용 가능한 화면 너비로 제한되며 좌우 모드에서는 각 패널의 실제 너비를 확인하세요. 좁은 화면/큰 fontScale에서는 상하 모드를 권장합니다. 입력 프로브의 편집 값은 독립적이며 sample text 변경 시 초기화됩니다.
+Render, Effects, Selection 상단의 **Side by side**를 켜면 Compose는 왼쪽, TextView는 오른쪽에 같은 너비로 표시됩니다. **Requested panel width**로 패널의 최대 너비를 정할 수 있습니다. 좁은 화면에서 한 줄에 더 많은 글자를 보려면 기기를 가로로 돌리거나 상하 모드를 사용하세요. 입력 프로브의 편집 값은 독립적이며 sample text 변경 시 초기화됩니다.
 
 두 엔진은 같은 굵기로 해석한 Android Typeface를 사용합니다. API 26–27에서는 NORMAL/BOLD로 정규화되며 100–900 가중치를 각각 재현하지 못합니다. Marquee에서는 두 엔진에 같은 한 줄 문자열(개행을 공백으로 변환)을 전달하며, 스크롤되는 텍스트 레이아웃 폭과 실제 표시 영역 폭을 따로 보고합니다. 입력 내용/선택은 탭·스타일·테마 변경 및 화면 재생성 시 유지됩니다.
 
@@ -41,6 +41,7 @@ TTF/OTF는 앱 내부에 복사하여 재실행 시 복원합니다. 20 MiB 제�
 
 ## 측정 해석
 
+- **Paragraph direction**은 두 엔진에 공통으로 적용됩니다. 기본값 `FirstStrong`은 문단에 처음 나타나는 강한 방향의 문자를 따릅니다. `LTR`과 `RTL`은 문단의 기본 방향을 고정하되, 문단 안의 아랍어와 라틴 문자 배열에는 여전히 Unicode 양방향 규칙이 적용됩니다. 테마 기본 프로브에는 이 설정을 적용하지 않습니다.
 - 공통 스타일 프로브에는 대응 속성을 명시합니다. 테마 기본 프로브는 Material 3 Typography와 Framework textAppearance의 실제 기본값을 별도로 보여주며, 이 둘의 일치를 전제로 하지 않습니다.
 - fontScale override는 미리보기 전용입니다. Android Configuration에서 파생한 Context와 Compose Density를 함께 사용하며, Android 14+의 비선형 SP 변환을 단순 `sp × scaledDensity` 계산으로 대체하지 않습니다. 시스템 변경 검증에는 **Follow system fontScale**을 사용합니다.
 - baseline은 **각 프로브 위젯 상단에서의 px 거리**입니다. Compose `TextLayoutResult`에는 바깥 padding이 없으므로 보고 시 padding을 더합니다. TextView는 `baseline`, `totalPaddingTop`과 Layout의 baseline을 사용합니다. font padding은 엔진 자체의 정책입니다.
