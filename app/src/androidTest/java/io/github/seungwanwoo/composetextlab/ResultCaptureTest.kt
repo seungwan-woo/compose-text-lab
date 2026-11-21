@@ -99,10 +99,13 @@ class ResultCaptureTest {
 
     private fun capture(name: String) {
         rule.waitForIdle()
-        val directory = File(instrumentation.targetContext.filesDir, "ci-captures").apply { mkdirs() }
+        // Gradle collects additional test output before uninstalling the application.
+        val directory = InstrumentationRegistry.getArguments().getString("additionalTestOutputDir")
+            ?.let(::File) ?: instrumentation.targetContext.filesDir
+        directory.mkdirs()
         val bitmap = checkNotNull(instrumentation.uiAutomation.takeScreenshot())
         try {
-            File(directory, "$name.png").outputStream().use {
+            File(directory, "ci-$name.png").outputStream().use {
                 check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it))
             }
         } finally {
