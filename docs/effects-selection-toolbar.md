@@ -1,5 +1,16 @@
 # Text effects / selection toolbar
 
+## Compose 텍스트 API와 View 대안
+
+| Compose API | TextView에서의 대응 |
+|---|---|
+| `InlineTextContent` | 텍스트 흐름에 실제 Composable을 넣습니다. `ImageSpan`이나 `ReplacementSpan`은 인라인 영역을 그릴 수 있지만 그 위치에 자식 View를 호스팅하지는 않습니다. |
+| `TextMeasurer`와 `DrawScope.drawText` | 같은 Compose 텍스트 설정으로 측정 결과를 얻고 Canvas에서 그릴 수 있습니다. View 쪽에서는 `StaticLayout` 또는 `Layout`을 별도로 구성합니다. |
+| `TextMotion.Animated` | 애니메이션 중 서브픽셀 위치와 힌팅 정책을 `TextStyle`에서 지정합니다. TextView에는 같은 단일 옵션이 없고 필요하면 `Paint`를 제어합니다. |
+| `AnnotatedString`과 `LinkAnnotation` | 스타일 범위와 클릭 가능한 링크를 선언합니다. 링크와 부분 스타일 자체는 TextView도 `Spannable`, `ClickableSpan`, `URLSpan`으로 지원합니다. |
+
+이 표는 API 차이를 설명합니다. 실험 앱은 위 API의 결과를 자동으로 비교하지 않습니다.
+
 ## 구현 대응
 
 | 기능 | Compose | Framework |
