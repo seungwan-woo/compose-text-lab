@@ -47,6 +47,7 @@ import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
@@ -79,7 +80,10 @@ internal fun RichTextProbes(settings: LabSettings, font: FontAsset?) {
     var viewAction by rememberSaveable { mutableStateOf("No link activated") }
     var composeMetrics by remember { mutableStateOf("") }
     var viewMetrics by remember { mutableStateOf("") }
-    val annotated = remember(colors) { buildComposeText(colors) { composeAction = it } }
+    val baseFace = remember(settings.font, settings.weight, font?.sha256) { weightedTypeface(settings, font) }
+    // A FontFamily that wraps a Typeface ignores requested weights. Resolve the bold face explicitly.
+    val boldFamily = remember(baseFace) { FontFamily(Typeface.create(baseFace, Typeface.BOLD)) }
+    val annotated = remember(colors, boldFamily) { buildComposeText(colors, boldFamily) { composeAction = it } }
     val inlineBadge = mapOf(BADGE_KEY to InlineTextContent(
         Placeholder(1.em, 1.em, PlaceholderVerticalAlign.TextCenter),
     ) {
@@ -108,7 +112,7 @@ internal fun RichTextProbes(settings: LabSettings, font: FontAsset?) {
                         tag = "rich-view"
                         text = buildViewText(colors) { viewAction = it }
                         movementMethod = LinkMovementMethod.getInstance()
-                        typeface = weightedTypeface(settings, font)
+                        typeface = baseFace
                         setTextSize(TypedValue.COMPLEX_UNIT_SP, settings.fontSizeSp)
                         setTextColor(colors.onSurface.toArgb())
                         includeFontPadding = settings.includeFontPadding
@@ -134,12 +138,12 @@ internal fun RichTextProbes(settings: LabSettings, font: FontAsset?) {
     }
 }
 
-private fun buildComposeText(colors: ColorScheme, onAction: (String) -> Unit) = buildAnnotatedString {
+private fun buildComposeText(colors: ColorScheme, boldFamily: FontFamily, onAction: (String) -> Unit) = buildAnnotatedString {
     val linkStyle = TextLinkStyles(style = SpanStyle(color = colors.primary, textDecoration = TextDecoration.Underline))
     for ((text, mark) in sample) {
         when (mark) {
             Mark.Plain -> append(text)
-            Mark.Emphasis -> withStyle(SpanStyle(color = colors.primary, fontWeight = FontWeight.Bold)) { append(text) }
+            Mark.Emphasis -> withStyle(SpanStyle(color = colors.primary, fontWeight = FontWeight.Bold, fontFamily = boldFamily)) { append(text) }
             Mark.Highlight -> withStyle(SpanStyle(color = colors.onSecondaryContainer, background = colors.secondaryContainer)) { append(text) }
             Mark.Underline -> withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) { append(text) }
             Mark.Url -> withLink(LinkAnnotation.Url(DOCS_URL, linkStyle) { onAction("URL: $DOCS_URL") }) { append(text) }
