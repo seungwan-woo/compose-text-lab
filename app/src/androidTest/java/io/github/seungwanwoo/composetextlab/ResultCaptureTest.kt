@@ -143,12 +143,13 @@ class ResultCaptureTest {
         capture("overflow-clip")
 
         selectTab("Effects")
+        val marquee = rule.onNodeWithText("Marquee").assertIsDisplayed()
         // Compose cancels infinite animations while the test clock advances automatically.
         rule.mainClock.autoAdvance = false
         try {
-            rule.onNodeWithText("Marquee").performClick()
+            marquee.performSemanticsAction(SemanticsActions.OnClick) { assertTrue(it()) }
             rule.mainClock.advanceTimeBy(100)
-            rule.onNodeWithText("Marquee").assertIsSelected()
+            marquee.assertIsSelected()
             assertMarqueeMotion()
         } finally {
             rule.mainClock.autoAdvance = true
