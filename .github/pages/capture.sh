@@ -1,11 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+android_release=$(adb shell getprop ro.build.version.release | tr -d '\r')
+api_major=$(adb shell getprop ro.build.version.sdk | tr -d '\r')
+api_minor=$(adb shell getprop ro.build.version.sdk_minor | tr -d '\r')
+runtime_api="$api_major.${api_minor:-0}"
+if [[ "$runtime_api" != "$ANDROID_TEST_API" ]]; then
+  echo "Expected Android API $ANDROID_TEST_API, but the booted emulator reports $runtime_api" >&2
+  exit 1
+fi
+page_dir=build/ci-pages
+mkdir -p "$page_dir"
+printf 'Android %s · API %s 에뮬레이터\n' "$android_release" "$runtime_api" > "$page_dir/runtime.txt"
+printf 'Testing Android %s, API %s (%s-byte pages)\n' "$android_release" "$runtime_api" "$(adb shell getconf PAGE_SIZE | tr -d '\r')"
+
 adb shell wm size 1800x1900
 adb shell wm density 320
 ./gradlew --no-daemon :app:connectedDebugAndroidTest
 
-capture_dir=build/ci-pages/screenshots
+capture_dir="$page_dir/screenshots"
 mkdir -p "$capture_dir"
 shopt -s globstar nullglob
 for scene in render dark-font-scale gradient compose-selection view-selection \
