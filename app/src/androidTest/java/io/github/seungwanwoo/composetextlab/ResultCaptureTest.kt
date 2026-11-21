@@ -143,8 +143,16 @@ class ResultCaptureTest {
         capture("overflow-clip")
 
         selectTab("Effects")
-        rule.onNodeWithText("Marquee").performClick().assertIsSelected()
-        assertMarqueeMotion()
+        // Compose cancels infinite animations while the test clock advances automatically.
+        rule.mainClock.autoAdvance = false
+        try {
+            rule.onNodeWithText("Marquee").performClick()
+            rule.mainClock.advanceTimeBy(100)
+            rule.onNodeWithText("Marquee").assertIsSelected()
+            assertMarqueeMotion()
+        } finally {
+            rule.mainClock.autoAdvance = true
+        }
     }
 
     private fun assertOverflow(expectedOverflow: Boolean, expectedEllipsis: Boolean) {
@@ -176,19 +184,27 @@ class ResultCaptureTest {
         val first = screenshot()
         try {
             saveCapture(first, "marquee-start")
-            var bothMoved = false
-            rule.waitUntil(timeoutMillis = 7_000) {
+            var composeMoved = false
+            var viewMoved = false
+            repeat(20) {
+                rule.mainClock.advanceTimeBy(200)
                 SystemClock.sleep(150)
+                rule.waitForIdle()
                 val frame = screenshot()
                 try {
-                    bothMoved = pixelsChanged(first, frame, composeBounds) && pixelsChanged(first, frame, viewBounds)
-                    if (bothMoved) saveCapture(frame, "marquee-moving")
-                    bothMoved
+                    val composeChanged = pixelsChanged(first, frame, composeBounds)
+                    val viewChanged = pixelsChanged(first, frame, viewBounds)
+                    composeMoved = composeMoved || composeChanged
+                    viewMoved = viewMoved || viewChanged
+                    if (composeChanged && viewChanged) {
+                        saveCapture(frame, "marquee-moving")
+                        return
+                    }
                 } finally {
                     frame.recycle()
                 }
             }
-            assertTrue("Both marquee regions must change between the two frames", bothMoved)
+            error("No frame showed motion in both marquee regions (Compose moved: $composeMoved; TextView moved: $viewMoved)")
         } finally {
             first.recycle()
         }
