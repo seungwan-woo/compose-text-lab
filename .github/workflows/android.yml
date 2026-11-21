@@ -60,6 +60,13 @@ jobs:
           script: bash .github/pages/capture.sh
       - name: Build the results page
         run: python3 .github/pages/build.py build/ci-pages
+      - name: Upload rich text comparison capture
+        uses: actions/upload-artifact@v4
+        with:
+          name: rich-text-comparison
+          path: app/build/outputs/connected_android_test_additional_output/**/rich-text-comparison.png
+          if-no-files-found: error
+          retention-days: 14
       - name: Upload the results page for review
         uses: actions/upload-artifact@v4
         with:

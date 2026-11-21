@@ -33,7 +33,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-enum class LabTab { Render, Effects, Selection, Report }
+enum class LabTab(val label: String) {
+    Render("Render"), Effects("Effects"), Selection("Selection"), RichText("Rich text"), Report("Report")
+}
 
 @Composable
 fun LabApp() {
@@ -136,7 +138,7 @@ fun LabApp() {
                     TextButton(onClick = { showSettings = !showSettings }) { Text(if (showSettings) "Hide settings" else "Settings") }
                 }
                 PrimaryTabRow(selectedTabIndex = tab.ordinal) {
-                    LabTab.entries.forEach { item -> Tab(selected = tab == item, onClick = { tab = item }, text = { Text(item.name) }) }
+                    LabTab.entries.forEach { item -> Tab(selected = tab == item, onClick = { tab = item }, text = { Text(item.label) }) }
                 }
                 key(tab) {
                     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -195,6 +197,14 @@ fun LabApp() {
                                         LocalConfiguration provides previewContext.resources.configuration, LocalDensity provides previewDensity) {
                                         SelectionProbes(s, importedFont, composeInput, { composeInput = it },
                                             viewInput, { viewInput = it }, events.toList(), onEvent)
+                                    }
+                                }
+                            }
+                            LabTab.RichText -> {
+                                key(s, importedFont?.sha256, previewConfiguration) {
+                                    CompositionLocalProvider(LocalContext provides previewContext,
+                                        LocalConfiguration provides previewContext.resources.configuration, LocalDensity provides previewDensity) {
+                                        RichTextProbes(s, importedFont)
                                     }
                                 }
                             }
