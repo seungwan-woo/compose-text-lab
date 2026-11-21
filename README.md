@@ -31,6 +31,7 @@ Windows에서는 `gradlew.bat`를 사용합니다. SDK는 `ANDROID_HOME` 또는 
 | Font scale | 실제 시스템 값 추종 또는 미리보기 한정 0.8–2.0 Configuration override; 시스템 화면 설정 바로가기 |
 | Effects | None/Shadow/Gradient/Stroke/Marquee, 동일 글꼴/설정으로 비교 |
 | Selection | SelectionContainer, BasicTextField, TextView, EditText, View 커스텀 ActionMode 메뉴, 선택 offset/ActionMode 이벤트 로그 |
+| Rich text | AnnotatedString ↔ Spannable, 부분 스타일, URL·커스텀 클릭, InlineTextContent ↔ ReplacementSpan, 기준선·높이 |
 | Report | 실제 레이아웃/위젯 px 치수, 줄 수, 첫/마지막 baseline, ellipsis/overflow, 단말/설정/폰트 식별자; JSON 복사/파일 저장 |
 
 Render, Effects, Selection 상단의 **Side by side**를 켜면 Compose는 왼쪽, TextView는 오른쪽에 같은 너비로 표시됩니다. **Requested panel width**로 패널의 최대 너비를 정할 수 있습니다. 좁은 화면에서 한 줄에 더 많은 글자를 보려면 기기를 가로로 돌리거나 상하 모드를 사용하세요. 입력 프로브의 편집 값은 독립적이며 sample text 변경 시 초기화됩니다.
@@ -55,6 +56,8 @@ TTF/OTF는 앱 내부에 복사하여 재실행 시 복원합니다. 20 MiB 제�
 일반 공개 SDK 앱으로 텍스트 선택 메뉴를 관찰합니다. `HorizontalFloatingToolbar` 위젯 실험이 아닙니다. RemoteFloatingToolbarPopup/SelectionToolbarService 등 내부 시스템 경로를 강제로 켜거나 검출하지 않습니다. 실제 원격 렌더링 여부는 OEM Framework 로그/추적과 함께 별도 검증해야 합니다.
 
 자세한 API 대응, 제약 및 단말 검증표는 [effects-selection-toolbar.md](docs/effects-selection-toolbar.md)에 있습니다.
+
+Rich text 탭과 자동 검증의 범위는 [AnnotatedString과 Spannable](docs/rich-text.md)에 정리했습니다. CI의 `rich-text-comparison` 아티팩트에서 비교 화면을 확인할 수 있습니다.
 
 ## 검증 범위
 
