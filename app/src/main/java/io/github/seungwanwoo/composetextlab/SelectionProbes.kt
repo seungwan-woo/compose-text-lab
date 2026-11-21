@@ -34,10 +34,13 @@ fun SelectionProbes(s: LabSettings, font: FontAsset?, composeValue: TextFieldVal
         Text("Long press each sample to compare selection handles and the platform text menu.")
         Text("Remote toolbar routing is unverified. Logs show public API observations only.", style = MaterialTheme.typography.bodySmall)
         ProbePanel("Compose · SelectionContainer", Modifier.fillMaxWidth()) {
-            SelectionContainer { Text(s.text, style = style, modifier = Modifier.fillMaxWidth().padding(s.paddingDp.dp)) }
+            SelectionContainer {
+                Text(s.text, style = style, modifier = Modifier.fillMaxWidth().padding(s.paddingDp.dp)
+                    .testTag("compose-selectable"))
+            }
             Text("Selection offsets are not exposed here.", style = MaterialTheme.typography.bodySmall)
         }
-        ProbePanel("View · selectable TextView", Modifier.fillMaxWidth()) {
+        ProbePanel("View · selectable TextView", Modifier.fillMaxWidth().testTag("view-selectable-panel")) {
             AndroidView(factory = { context -> TextView(context).apply {
                 tag = "view-selectable"; applySelectionStyle(this, s, font, color.toArgb())
                 text = s.text; setTextIsSelectable(true)
