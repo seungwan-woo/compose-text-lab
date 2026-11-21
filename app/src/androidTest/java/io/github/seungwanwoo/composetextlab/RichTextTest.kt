@@ -1,6 +1,7 @@
 package io.github.seungwanwoo.composetextlab
 
 import android.graphics.Bitmap
+import android.graphics.Typeface
 import android.text.Spanned
 import android.text.style.ReplacementSpan
 import android.text.style.URLSpan
@@ -9,6 +10,8 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.createFontFamilyResolver
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.CoordinatesProvider
 import androidx.test.espresso.action.GeneralClickAction
@@ -43,6 +46,10 @@ class RichTextTest {
         assertEquals(2, layout.layoutInput.text.getLinkAnnotations(0, text.length).size)
         assertNotNull(layout.placeholderRects.single())
         rule.runOnIdle {
+            val boldSpan = layout.layoutInput.text.spanStyles.single { it.item.fontWeight == FontWeight.Bold }
+            val boldFace = createFontFamilyResolver(rule.activity)
+                .resolve(boldSpan.item.fontFamily, FontWeight.Bold).value as Typeface
+            assertTrue(boldFace.isBold)
             val view = rule.activity.window.decorView.findViewWithTag<TextView>("rich-view")
             assertEquals(text, view.text.toString())
             val styled = view.text as Spanned
