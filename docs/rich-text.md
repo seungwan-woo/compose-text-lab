@@ -198,7 +198,7 @@ Android 17 · API 37.2 에뮬레이터의 fontScale 1.6 미리보기에서, 이 
 
 | 항목 | 이 프로젝트에서 검증한 조합 | Compose 1.13.0 전환 시 고려할 점 |
 | --- | --- | --- |
-| Compose UI / Foundation | BOM `2025.12.00`, UI/Foundation `1.10.0` | `1.13.0` Stable은 11월 18일 릴리스입니다. 해당 버전을 매핑하는 BOM은 업그레이드 시 확인해야 합니다. |
+| Compose UI / Foundation | BOM `2025.12.00`, UI/Foundation `1.10.0` | `1.13.0` Stable은 11월 18일 릴리스입니다. BOM `2026.11.01`은 UI와 Foundation을 모두 `1.13.0`으로 매핑합니다. |
 | AGP / SDK | AGP `8.13.2`, `compileSdk` / `targetSdk` 36, `minSdk` 26 | `ui-android`와 `foundation-android` 1.13.0의 AAR 메타데이터는 **compile SDK 37.1 이상**, **AGP 9.1.0 이상**을 요구합니다. |
 | Kotlin | Kotlin과 Compose compiler 플러그인 `2.2.21` | AGP와 Kotlin 플러그인 조합을 별도 빌드로 검증해야 합니다. |
 | `LinkAnnotation` | 현재 조합에서 동작 확인 | Compose 1.7부터 사용할 수 있으며, 새 코드는 `addUrlAnnotation()` 대신 이 API를 사용합니다. |
@@ -208,6 +208,7 @@ Android 17 · API 37.2 에뮬레이터의 fontScale 1.6 미리보기에서, 이 
 - [Compose 텍스트 선택 및 링크](https://developer.android.com/develop/ui/compose/text/user-interactions)
 - [AnnotatedString.Builder API](https://developer.android.com/reference/kotlin/androidx/compose/ui/text/AnnotatedString.Builder)
 - [Compose UI 릴리스 노트](https://developer.android.com/jetpack/androidx/releases/compose-ui#1.13.0)
+- [Compose BOM 2026.11.01 POM](https://dl.google.com/dl/android/maven2/androidx/compose/compose-bom/2026.11.01/compose-bom-2026.11.01.pom)
 - [Compose UI 1.13.0 AAR](https://dl.google.com/dl/android/maven2/androidx/compose/ui/ui-android/1.13.0/ui-android-1.13.0.aar) · [Foundation 1.13.0 AAR](https://dl.google.com/dl/android/maven2/androidx/compose/foundation/foundation-android/1.13.0/foundation-android-1.13.0.aar)
 
 다음 비교 주제는 `EditText`와 Compose `TextField`의 IME 연결, 입력 필터, `TextFieldState`, 선택 범위와 조합 범위입니다.
