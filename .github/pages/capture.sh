@@ -26,12 +26,17 @@ adb shell wm density 320
 capture_dir="$page_dir/screenshots"
 mkdir -p "$capture_dir"
 shopt -s globstar nullglob
-for scene in render dark-font-scale gradient compose-selection view-selection \
-  compose-right-click view-right-click overflow-ellipsis overflow-clip marquee-start marquee-moving; do
-  matches=(app/build/outputs/connected_android_test_additional_output/**/"ci-$scene.png")
+copy_capture() {
+  local scene=$1 source_name=${2:-ci-$1}
+  local matches=(app/build/outputs/connected_android_test_additional_output/**/"$source_name.png")
   if (( ${#matches[@]} != 1 )); then
     echo "Expected one Gradle test output for $scene, found ${#matches[@]}" >&2
     exit 1
   fi
   cp "${matches[0]}" "$capture_dir/$scene.png"
+}
+for scene in render dark-font-scale gradient compose-selection view-selection \
+  compose-right-click view-right-click overflow-ellipsis overflow-clip marquee-start marquee-moving; do
+  copy_capture "$scene"
 done
+copy_capture rich-text-comparison rich-text-comparison

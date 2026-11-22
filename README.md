@@ -57,7 +57,7 @@ TTF/OTF는 앱 내부에 복사하여 재실행 시 복원합니다. 20 MiB 제�
 
 자세한 API 대응, 제약 및 단말 검증표는 [effects-selection-toolbar.md](docs/effects-selection-toolbar.md)에 있습니다.
 
-Rich text 탭과 자동 검증의 범위는 [AnnotatedString과 Spannable](docs/rich-text.md)에 정리했습니다. CI의 `rich-text-comparison` 아티팩트에서 비교 화면을 확인할 수 있습니다.
+Rich text 탭과 자동 검증의 범위는 [AnnotatedString vs Spannable](docs/rich-text.md)에 정리했습니다. 비교 화면은 [GitHub Pages](https://seungwan-woo.github.io/compose-text-lab/#rich-text)와 CI의 `rich-text-comparison` 아티팩트에서 확인할 수 있습니다.
 
 ## 검증 범위
 
