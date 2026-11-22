@@ -33,8 +33,17 @@
       <a href="{{RUN_URL}}">GitHub Actions 실행</a>
       <a href="{{RUN_URL}}#artifacts">APK 및 테스트 리포트</a>
       <a href="{{COMMIT_URL}}">소스 {{SHORT_SHA}}</a>
+      <a href="#rich-text">Rich Text 비교</a>
     </nav>
   </header>
+  <section aria-labelledby="rich-text">
+    <h2 id="rich-text">AnnotatedString vs Spannable</h2>
+    <p>같은 다국어 문자열에 부분 스타일, URL과 커스텀 클릭, 인라인 배지를 적용했습니다. 테스트는 양쪽 링크의 클릭 이벤트와 배지 레이아웃을 확인합니다. 첫 기준선과 줄 수는 캡처에서 비교할 수 있습니다.</p>
+    <p><a href="{{RICH_TEXT_DOC_URL}}">API 대응표와 검증 범위</a></p>
+    <div class="gallery">
+{{RICH_TEXT}}
+    </div>
+  </section>
   <section aria-labelledby="captures">
     <h2 id="captures">선택 메뉴 좌우 비교</h2>
     <p>두 엔진에서 같은 단어를 선택했습니다. 메뉴 항목은 선택 범위와 텍스트 분류 결과에 따라 달라질 수 있습니다. 이미지를 누르면 원본 크기로 볼 수 있습니다.</p>
