@@ -32,6 +32,7 @@ Windows에서는 `gradlew.bat`를 사용합니다. SDK는 `ANDROID_HOME` 또는 
 | Effects | None/Shadow/Gradient/Stroke/Marquee, 동일 글꼴/설정으로 비교 |
 | Selection | SelectionContainer, BasicTextField, TextView, EditText, View 커스텀 ActionMode 메뉴, 선택 offset/ActionMode 이벤트 로그 |
 | Rich text | AnnotatedString ↔ Spannable, 부분 스타일, URL·커스텀 클릭, InlineTextContent ↔ ReplacementSpan, 기준선·높이 |
+| Lines | 다국어 줄바꿈, 하이픈, Locale, BiDi 방향, UTF-16 줄 경계, 기준선·가로 범위, ICU 경계와 커서 위치 JSON |
 | Report | 실제 레이아웃/위젯 px 치수, 줄 수, 첫/마지막 baseline, ellipsis/overflow, 단말/설정/폰트 식별자; JSON 복사/파일 저장 |
 
 **Comparison layout**의 기본값은 **Auto**입니다. 비교 영역이 680dp 이상이면 Compose와 TextView를 같은 너비로 나란히 표시하고, 더 좁으면 상하로 배치합니다. 창 너비가 1100dp 이상이면 설정을 왼쪽에 두고 비교 영역과 별도로 스크롤합니다. **Stacked**, **Side by side**를 직접 선택하거나 **Limit panel width**로 실험 너비를 제한할 수 있습니다. 입력 프로브의 편집 값은 독립적이며 sample text 변경 시 초기화됩니다.
@@ -41,6 +42,8 @@ Windows에서는 `gradlew.bat`를 사용합니다. SDK는 `ANDROID_HOME` 또는 
 TTF/OTF는 앱 내부에 복사하여 재실행 시 복원합니다. 20 MiB 제한과 컨테이너/플랫폼 파서 검증을 적용합니다. 시스템 전체 폰트를 변경하지 않으며 저장소 권한이나 네트워크 권한이 필요하지 않습니다. 가져오기 취소/실패 시 기존 글꼴을 유지합니다. Report에는 입력한 sample 문자열이 포함되므로 공유 전에 확인하세요.
 
 ## 측정 해석
+
+다국어 샘플과 줄바꿈 제어, 계측값 읽는 법은 [ICU · BiDi · 다국어 줄바꿈](docs/multilingual-lines.md)에 정리했습니다.
 
 - **Paragraph direction**은 두 엔진에 공통으로 적용됩니다. 기본값 `FirstStrong`은 문단에 처음 나타나는 강한 방향의 문자를 따릅니다. `LTR`과 `RTL`은 문단의 기본 방향을 고정하되, 문단 안의 아랍어와 라틴 문자 배열에는 여전히 Unicode 양방향 규칙이 적용됩니다. 테마 기본 프로브에는 이 설정을 적용하지 않습니다.
 - 공통 스타일 프로브에는 대응 속성을 명시합니다. 테마 기본 프로브는 Material 3 Typography와 Framework textAppearance의 실제 기본값을 별도로 보여주며, 이 둘의 일치를 전제로 하지 않습니다.
