@@ -34,7 +34,7 @@ Windows에서는 `gradlew.bat`를 사용합니다. SDK는 `ANDROID_HOME` 또는 
 | Rich text | AnnotatedString ↔ Spannable, 부분 스타일, URL·커스텀 클릭, InlineTextContent ↔ ReplacementSpan, 기준선·높이 |
 | Report | 실제 레이아웃/위젯 px 치수, 줄 수, 첫/마지막 baseline, ellipsis/overflow, 단말/설정/폰트 식별자; JSON 복사/파일 저장 |
 
-Render, Effects, Selection 상단의 **Side by side**를 켜면 Compose는 왼쪽, TextView는 오른쪽에 같은 너비로 표시됩니다. **Requested panel width**로 패널의 최대 너비를 정할 수 있습니다. 좁은 화면에서 한 줄에 더 많은 글자를 보려면 기기를 가로로 돌리거나 상하 모드를 사용하세요. 입력 프로브의 편집 값은 독립적이며 sample text 변경 시 초기화됩니다.
+**Comparison layout**의 기본값은 **Auto**입니다. 비교 영역이 680dp 이상이면 Compose와 TextView를 같은 너비로 나란히 표시하고, 더 좁으면 상하로 배치합니다. 창 너비가 1100dp 이상이면 설정을 왼쪽에 두고 비교 영역과 별도로 스크롤합니다. **Stacked**, **Side by side**를 직접 선택하거나 **Limit panel width**로 실험 너비를 제한할 수 있습니다. 입력 프로브의 편집 값은 독립적이며 sample text 변경 시 초기화됩니다.
 
 두 엔진은 같은 굵기로 해석한 Android Typeface를 사용합니다. API 26–27에서는 NORMAL/BOLD로 정규화되며 100–900 가중치를 각각 재현하지 못합니다. Marquee에서는 두 엔진에 같은 한 줄 문자열(개행을 공백으로 변환)을 전달하며, 스크롤되는 텍스트 레이아웃 폭과 실제 표시 영역 폭을 따로 보고합니다. 입력 내용/선택은 탭·스타일·테마 변경 및 화면 재생성 시 유지됩니다.
 
@@ -56,6 +56,8 @@ TTF/OTF는 앱 내부에 복사하여 재실행 시 복원합니다. 20 MiB 제�
 일반 공개 SDK 앱으로 텍스트 선택 메뉴를 관찰합니다. `HorizontalFloatingToolbar` 위젯 실험이 아닙니다. RemoteFloatingToolbarPopup/SelectionToolbarService 등 내부 시스템 경로를 강제로 켜거나 검출하지 않습니다. 실제 원격 렌더링 여부는 OEM Framework 로그/추적과 함께 별도 검증해야 합니다.
 
 자세한 API 대응, 제약 및 단말 검증표는 [effects-selection-toolbar.md](docs/effects-selection-toolbar.md)에 있습니다.
+
+선택 메뉴의 자동 검증 범위와 One UI에서 확인할 항목은 [Text Selection & Floating Toolbar](docs/selection-toolbar.md)에 정리했습니다.
 
 Rich text 탭과 자동 검증의 범위는 [AnnotatedString vs Spannable](docs/rich-text.md)에 정리했습니다. 비교 화면은 [GitHub Pages](https://seungwan-woo.github.io/compose-text-lab/#rich-text)와 CI의 `rich-text-comparison` 아티팩트에서 확인할 수 있습니다.
 

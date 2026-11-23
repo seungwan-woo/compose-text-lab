@@ -4,7 +4,7 @@ ANDROID TEXT ENGINEERING · 02 · 2026.11.22
 
 부분 텍스트 스타일, 링크, 클릭 이벤트, 커스텀 Span을 비교합니다. Android View의 `Spannable`은 텍스트 범위에 Span 객체를 붙입니다. Compose의 `AnnotatedString`은 범위별 스타일과 어노테이션을 담는 불변 데이터입니다.
 
-이 저장소의 **Rich text** 탭은 영어, 한국어, 아랍어와 이모지가 섞인 하나의 샘플을 두 방식으로 렌더링합니다. **Side by side**를 켜면 왼쪽이 Compose, 오른쪽이 TextView입니다. 각 패널은 첫 기준선, 줄 수, 텍스트 영역 높이를 px로 표시합니다. [비교 캡처](https://seungwan-woo.github.io/compose-text-lab/#rich-text)
+이 저장소의 **Rich text** 탭은 영어, 한국어, 아랍어와 이모지가 섞인 하나의 샘플을 두 방식으로 렌더링합니다. 넓은 창에서는 자동으로 왼쪽에 Compose, 오른쪽에 TextView가 표시됩니다. **Side by side**를 선택해 이 배치를 고정할 수 있습니다. 각 패널은 첫 기준선, 줄 수, 텍스트 영역 높이를 px로 표시합니다. [비교 캡처](https://seungwan-woo.github.io/compose-text-lab/#rich-text)
 
 ## 1. API 대응표
 

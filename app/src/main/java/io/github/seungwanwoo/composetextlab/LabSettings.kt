@@ -6,6 +6,11 @@ enum class ThemeChoice { System, Light, Dark, Dynamic }
 enum class FontChoice { System, Sans, Serif, Monospace, Imported }
 enum class TextEffect { None, Shadow, Gradient, Stroke, Marquee }
 enum class ParagraphDirection { FirstStrong, LTR, RTL }
+enum class PanelLayout(private val label: String) {
+    Auto("Auto"), Stacked("Stacked"), SideBySide("Side by side");
+
+    override fun toString() = label
+}
 
 data class LabSettings(
     val text: String = "Compose ↔ TextView\n한글 기준선 Ag 0123 🙂\nالعربية 日本語 — text layout comparison",
@@ -20,8 +25,8 @@ data class LabSettings(
     val maxLines: Int = 5,
     val ellipsis: Boolean = true,
     val paddingDp: Float = 8f,
-    val previewWidthDp: Float = 320f,
-    val sideBySide: Boolean = false,
+    val previewWidthDp: Float? = null,
+    val panelLayout: PanelLayout = PanelLayout.Auto,
     val showBaselines: Boolean = true,
     val useSystemFontScale: Boolean = true,
     val fontScale: Float = 1f,
@@ -38,7 +43,7 @@ data class LabSettings(
         lineHeightSp = lineHeightSp.finiteOr(0f).coerceIn(0f, 100f),
         maxLines = maxLines.coerceIn(1, 20),
         paddingDp = paddingDp.finiteOr(8f).coerceIn(0f, 32f),
-        previewWidthDp = previewWidthDp.finiteOr(320f).coerceIn(120f, 600f),
+        previewWidthDp = previewWidthDp?.takeIf { it.isFinite() }?.coerceIn(120f, 600f),
     )
     fun effectiveFontScale(systemScale: Float): Float =
         if (useSystemFontScale) systemScale else normalized().fontScale
@@ -49,7 +54,7 @@ data class LabSettings(
         put("fontSizeSp", fontSizeSp); put("weight", weight); put("letterSpacingEm", letterSpacingEm)
         put("lineHeightSp", lineHeightSp); put("includeFontPadding", includeFontPadding)
         put("maxLines", maxLines); put("ellipsis", ellipsis); put("paddingDp", paddingDp)
-        put("previewWidthDp", previewWidthDp); put("sideBySide", sideBySide)
+        put("previewWidthDp", previewWidthDp ?: JSONObject.NULL); put("panelLayout", panelLayout.name)
         put("showBaselines", showBaselines); put("useSystemFontScale", useSystemFontScale)
         put("fontScale", fontScale); put("effect", effect.name); put("customViewMenu", customViewMenu)
     }
@@ -58,6 +63,7 @@ data class LabSettings(
         fun fromJson(value: String): LabSettings = runCatching {
             val j = JSONObject(value)
             val d = LabSettings()
+            val legacyLayout = !j.has("panelLayout")
             d.copy(
                 text = j.optString("text", d.text),
                 theme = ThemeChoice.valueOf(j.optString("theme", d.theme.name)),
@@ -71,8 +77,11 @@ data class LabSettings(
                 includeFontPadding = j.optBoolean("includeFontPadding"),
                 maxLines = j.optInt("maxLines", 5), ellipsis = j.optBoolean("ellipsis", true),
                 paddingDp = j.optDouble("paddingDp", 8.0).toFloat(),
-                previewWidthDp = j.optDouble("previewWidthDp", 320.0).toFloat(),
-                sideBySide = j.optBoolean("sideBySide"), showBaselines = j.optBoolean("showBaselines", true),
+                previewWidthDp = j.optDouble("previewWidthDp").toFloat()
+                    .takeUnless { legacyLayout && it == 320f },
+                panelLayout = PanelLayout.entries.firstOrNull { it.name == j.optString("panelLayout") }
+                    ?: if (legacyLayout && j.optBoolean("sideBySide")) PanelLayout.SideBySide else PanelLayout.Auto,
+                showBaselines = j.optBoolean("showBaselines", true),
                 useSystemFontScale = j.optBoolean("useSystemFontScale", true),
                 fontScale = j.optDouble("fontScale", 1.0).toFloat(),
                 effect = TextEffect.valueOf(j.optString("effect", d.effect.name)),
