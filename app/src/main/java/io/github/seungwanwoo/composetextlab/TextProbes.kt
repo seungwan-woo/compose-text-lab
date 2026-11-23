@@ -36,6 +36,8 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.intl.LocaleList
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
@@ -65,19 +67,21 @@ fun weightedTypeface(s: LabSettings, imported: FontAsset?): Typeface =
 fun composeFamily(s: LabSettings, imported: FontAsset?): FontFamily = FontFamily(weightedTypeface(s, imported))
 
 @Composable
-fun probeStyle(s: LabSettings, font: FontAsset?): TextStyle {
+internal fun probeStyle(s: LabSettings, font: FontAsset?, linePolicy: LineLayoutPolicy? = null): TextStyle {
     val density = LocalDensity.current
     val color = MaterialTheme.colorScheme.onSurface
     // A new TypefaceFontFamily on every onTextLayout recomposition would trigger layout again.
-    return remember(s, font?.sha256, density, color) { TextStyle(
+    return remember(s, font?.sha256, density, color, linePolicy) { TextStyle(
         color = color,
         fontSize = s.fontSizeSp.sp, fontFamily = composeFamily(s, font), fontWeight = FontWeight(s.weight),
         letterSpacing = s.letterSpacingEm.em,
         lineHeight = if (s.lineHeightSp == 0f) androidx.compose.ui.unit.TextUnit.Unspecified else s.lineHeightSp.sp,
         platformStyle = PlatformTextStyle(includeFontPadding = s.includeFontPadding),
-        lineBreak = LineBreak.Simple,
+        lineBreak = linePolicy?.composeLineBreak ?: LineBreak.Simple,
+        hyphens = if (linePolicy?.hyphenate == true) Hyphens.Auto else Hyphens.None,
+        localeList = linePolicy?.let { LocaleList(it.localeTag) },
         textAlign = TextAlign.Start,
-        textDirection = when (s.paragraphDirection) {
+        textDirection = linePolicy?.direction?.compose ?: when (s.paragraphDirection) {
             ParagraphDirection.FirstStrong -> TextDirection.Content
             ParagraphDirection.LTR -> TextDirection.Ltr
             ParagraphDirection.RTL -> TextDirection.Rtl
@@ -137,12 +141,18 @@ fun ProbePanel(title: String, modifier: Modifier = Modifier, content: @Composabl
 }
 
 @Composable
-fun ComparisonProbes(s: LabSettings, font: FontAsset?, onMeasure: (ProbeMeasurement) -> Unit) {
+internal fun ComparisonProbes(
+    s: LabSettings,
+    font: FontAsset?,
+    linePolicy: LineLayoutPolicy? = null,
+    graphemes: List<Int> = emptyList(),
+    onMeasure: (ProbeMeasurement) -> Unit,
+) {
     val color = MaterialTheme.colorScheme.onSurface
     val compose: @Composable () -> Unit = {
         ProbePanel("Compose Text", Modifier.fillMaxWidth()
             .testTag("compose-render-panel")) {
-            ComposeProbe(s, font, onMeasure)
+            ComposeProbe(s, font, linePolicy, graphemes, onMeasure)
         }
     }
     val view: @Composable () -> Unit = {
@@ -150,7 +160,7 @@ fun ComparisonProbes(s: LabSettings, font: FontAsset?, onMeasure: (ProbeMeasurem
             AndroidView(factory = { context ->
                 MeasuredTextView(context).apply {
                     tag = "view-probe"
-                    configure(s, font, color.toArgb())
+                    configure(s, font, color.toArgb(), linePolicy, graphemes)
                     measurement = onMeasure
                 }
             }, modifier = Modifier.fillMaxWidth())
@@ -160,11 +170,17 @@ fun ComparisonProbes(s: LabSettings, font: FontAsset?, onMeasure: (ProbeMeasurem
 }
 
 @Composable
-private fun ComposeProbe(s: LabSettings, font: FontAsset?, onMeasure: (ProbeMeasurement) -> Unit) {
+private fun ComposeProbe(
+    s: LabSettings,
+    font: FontAsset?,
+    linePolicy: LineLayoutPolicy?,
+    graphemes: List<Int>,
+    onMeasure: (ProbeMeasurement) -> Unit,
+) {
     var result by remember { mutableStateOf<TextLayoutResult?>(null) }
     var widgetSize by remember { mutableStateOf(IntSize.Zero) }
     val padding = with(LocalDensity.current) { s.paddingDp.dp.roundToPx() }
-    val style = probeStyle(s, font)
+    val style = probeStyle(s, font, linePolicy)
     val marquee = s.effect == TextEffect.Marquee
     LaunchedEffect(result, widgetSize) {
         val layout = result
@@ -173,7 +189,9 @@ private fun ComposeProbe(s: LabSettings, font: FontAsset?, onMeasure: (ProbeMeas
                 layout.size.width, layout.size.height, layout.lineCount,
                 layout.firstBaseline + padding, layout.lastBaseline + padding,
                 (0 until layout.lineCount).any { layout.isLineEllipsized(it) },
-                layout.hasVisualOverflow || layout.size.width + padding * 2 > widgetSize.width))
+                layout.hasVisualOverflow || layout.size.width + padding * 2 > widgetSize.width,
+                if (linePolicy != null) layout.observeLines(padding) else emptyList(),
+                if (linePolicy != null) layout.observeCarets(graphemes, padding) else emptyList()))
         }
     }
     Text(s.renderText(), style = style, maxLines = if (marquee) 1 else s.maxLines,
@@ -193,14 +211,18 @@ private fun ComposeProbe(s: LabSettings, font: FontAsset?, onMeasure: (ProbeMeas
         })
 }
 
-class MeasuredTextView(context: Context) : TextView(context) {
+internal class MeasuredTextView(context: Context) : TextView(context) {
     var measurement: ((ProbeMeasurement) -> Unit)? = null
     private var settings = LabSettings()
     private val baselinePaint = Paint().apply { color = 0xFFDA4453.toInt() }
     private var lastMeasurement: ProbeMeasurement? = null
+    private var linePolicy: LineLayoutPolicy? = null
+    private var graphemes: List<Int> = emptyList()
 
-    fun configure(s: LabSettings, font: FontAsset?, color: Int) {
+    fun configure(s: LabSettings, font: FontAsset?, color: Int, linePolicy: LineLayoutPolicy?, graphemes: List<Int>) {
         settings = s
+        this.linePolicy = linePolicy
+        this.graphemes = graphemes
         text = s.renderText()
         typeface = weightedTypeface(s, font)
         setTextSize(TypedValue.COMPLEX_UNIT_SP, s.fontSizeSp)
@@ -209,6 +231,7 @@ class MeasuredTextView(context: Context) : TextView(context) {
         letterSpacing = s.letterSpacingEm
         gravity = Gravity.TOP or Gravity.START
         applyProbeParagraphStyle(s.paragraphDirection)
+        linePolicy?.applyTo(this)
         val padding = (s.paddingDp * resources.displayMetrics.density).roundToInt()
         setPadding(padding, padding, padding, padding)
         if (s.lineHeightSp > 0) {
@@ -245,7 +268,9 @@ class MeasuredTextView(context: Context) : TextView(context) {
         val overflow = ellipsized || count > maxLines || layout.height > height - totalPaddingTop - totalPaddingBottom ||
             (0 until count).any { layout.getLineWidth(it) > width - compoundPaddingLeft - compoundPaddingRight + 1 }
         val measured = ProbeMeasurement("textView", width, height, layout.width, layout.height, count,
-            baseline.toFloat(), (totalPaddingTop + layout.getLineBaseline(visibleLines - 1)).toFloat(), ellipsized, overflow)
+            baseline.toFloat(), (totalPaddingTop + layout.getLineBaseline(visibleLines - 1)).toFloat(), ellipsized, overflow,
+            if (linePolicy != null) layout.observeLines(visibleLines, totalPaddingTop, compoundPaddingLeft) else emptyList(),
+            if (linePolicy != null) layout.observeCarets(graphemes, visibleLines, compoundPaddingLeft) else emptyList())
         if (measured != lastMeasurement) {
             lastMeasurement = measured
             post { if (isAttachedToWindow) measurement?.invoke(measured) }

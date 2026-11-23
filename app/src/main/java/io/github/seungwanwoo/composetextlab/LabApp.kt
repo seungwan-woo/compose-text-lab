@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -33,7 +34,7 @@ import java.util.Date
 import java.util.Locale
 
 enum class LabTab(val label: String) {
-    Render("Render"), Effects("Effects"), Selection("Selection"), RichText("Rich text"), Report("Report")
+    Render("Render"), Effects("Effects"), Selection("Selection"), RichText("Rich text"), Lines("Lines"), Report("Report")
 }
 
 @Composable
@@ -48,6 +49,7 @@ fun LabApp() {
     fun change(next: LabSettings) { savedSettings = next.normalized().toJson().toString() }
     LaunchedEffect(savedSettings) { prefs.edit().putString("json", savedSettings).apply() }
     var tab by rememberSaveable { mutableStateOf(LabTab.Render) }
+    val tabState = rememberSaveableStateHolder()
     var showSettings by rememberSaveable { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
     val fontRepository = remember { FontRepository(context.applicationContext) }
@@ -125,8 +127,8 @@ fun LabApp() {
         "uiMode" to previewConfiguration.uiMode.toString(), "experiment" to measuredEffect.name,
         "composeBom" to "2025.12.00", "appVersion" to BuildConfig.VERSION_NAME,
     )
-    fun report() = buildReport(s.copy(effect = measuredEffect), environment,
-        if (s.font == FontChoice.Imported) "${importedFont?.displayName}; sha256=${importedFont?.sha256}" else s.font.name,
+    val fontIdentity = if (s.font == FontChoice.Imported) "${importedFont?.displayName}; sha256=${importedFont?.sha256}" else s.font.name
+    fun report() = buildReport(s.copy(effect = measuredEffect), environment, fontIdentity,
         measurements.values.sortedBy { it.engine }).toString(2)
 
     MaterialTheme(colorScheme = colors) {
@@ -211,6 +213,9 @@ fun LabApp() {
                                             RichTextProbes(s, importedFont)
                                         }
                                     }
+                                }
+                                LabTab.Lines -> tabState.SaveableStateProvider(LabTab.Lines.name) {
+                                    MultilingualProbes(s, importedFont, fontIdentity, environment, previewContext, previewDensity)
                                 }
                                 LabTab.Report -> {
                                     Text("${measurements.size}/2 render measurements captured. Open Render or Effects after changing settings.")

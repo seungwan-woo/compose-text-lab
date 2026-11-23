@@ -26,17 +26,18 @@ adb shell wm density 320
 capture_dir="$page_dir/screenshots"
 mkdir -p "$capture_dir"
 shopt -s globstar nullglob
-copy_capture() {
-  local scene=$1 source_name=${2:-ci-$1}
-  local matches=(app/build/outputs/connected_android_test_additional_output/**/"$source_name.png")
+copy_test_output() {
+  local source_name=$1 destination=$2
+  local matches=(app/build/outputs/connected_android_test_additional_output/**/"$source_name")
   if (( ${#matches[@]} != 1 )); then
-    echo "Expected one Gradle test output for $scene, found ${#matches[@]}" >&2
+    echo "Expected one Gradle test output for $source_name, found ${#matches[@]}" >&2
     exit 1
   fi
-  cp "${matches[0]}" "$capture_dir/$scene.png"
+  cp "${matches[0]}" "$destination"
 }
 for scene in render dark-font-scale gradient compose-selection view-selection \
-  compose-right-click view-right-click overflow-ellipsis overflow-clip marquee-start marquee-moving tablet-selection; do
-  copy_capture "$scene"
+  compose-right-click view-right-click overflow-ellipsis overflow-clip marquee-start marquee-moving tablet-selection +  multilingual-lines; do
+  copy_test_output "ci-$scene.png" "$capture_dir/$scene.png"
 done
-copy_capture rich-text-comparison rich-text-comparison
+copy_test_output rich-text-comparison.png "$capture_dir/rich-text-comparison.png"
+copy_test_output ci-multilingual-lines.json "$page_dir/multilingual-lines.json"

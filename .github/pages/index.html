@@ -34,9 +34,19 @@
       <a href="{{RUN_URL}}#artifacts">APK 및 테스트 리포트</a>
       <a href="{{COMMIT_URL}}">소스 {{SHORT_SHA}}</a>
       <a href="#rich-text">Rich Text 비교</a>
+      <a href="#multilingual">다국어 줄바꿈</a>
       <a href="#tablet">태블릿 레이아웃</a>
     </nav>
   </header>
+  <section aria-labelledby="multilingual">
+    <h2 id="multilingual">ICU · BiDi · 다국어 줄바꿈</h2>
+    <p>아랍어·라틴 문자·숫자가 섞인 문단의 BiDi 방향과 줄 배치를 같은 폭에서 비교했습니다.
+       JSON에는 양쪽 엔진의 UTF-16 줄 범위와 커서 위치, ICU가 계산한 경계가 들어 있습니다.</p>
+    <p><a href="multilingual-lines.json">실제 계측 JSON</a> · <a href="{{LINE_LAYOUT_DOC_URL}}">설정과 검증 범위</a></p>
+    <div class="gallery">
+{{MULTILINGUAL}}
+    </div>
+  </section>
   <section aria-labelledby="rich-text">
     <h2 id="rich-text">AnnotatedString vs Spannable</h2>
     <p>같은 다국어 문자열에 부분 스타일, URL과 커스텀 클릭, 인라인 배지를 적용했습니다. 테스트는 양쪽 링크의 클릭 이벤트와 배지 레이아웃을 확인합니다. 첫 기준선과 줄 수는 캡처에서 비교할 수 있습니다.</p>
