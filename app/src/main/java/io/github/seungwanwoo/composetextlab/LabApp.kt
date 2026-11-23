@@ -134,7 +134,7 @@ fun LabApp() {
     MaterialTheme(colorScheme = colors) {
         Surface(Modifier.fillMaxSize()) {
             BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding().imePadding()) {
-                val scrollTabs = maxWidth < 520.dp || configuration.fontScale >= 1.6f
+                val scrollTabs = maxWidth < 600.dp || configuration.fontScale >= 1.6f
                 Column(Modifier.widthIn(max = 1440.dp).fillMaxSize().align(Alignment.TopCenter)) {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {

@@ -78,7 +78,11 @@ internal fun probeStyle(s: LabSettings, font: FontAsset?, linePolicy: LineLayout
         lineHeight = if (s.lineHeightSp == 0f) androidx.compose.ui.unit.TextUnit.Unspecified else s.lineHeightSp.sp,
         platformStyle = PlatformTextStyle(includeFontPadding = s.includeFontPadding),
         lineBreak = linePolicy?.composeLineBreak ?: LineBreak.Simple,
-        hyphens = if (linePolicy?.hyphenate == true) Hyphens.Auto else Hyphens.None,
+        hyphens = when (linePolicy?.hyphenate) {
+            true -> Hyphens.Auto
+            false -> Hyphens.None
+            null -> Hyphens.Unspecified
+        },
         localeList = linePolicy?.let { LocaleList(it.localeTag) },
         textAlign = TextAlign.Start,
         textDirection = linePolicy?.direction?.compose ?: when (s.paragraphDirection) {

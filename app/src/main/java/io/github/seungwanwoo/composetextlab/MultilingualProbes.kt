@@ -3,6 +3,10 @@ package io.github.seungwanwoo.composetextlab
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -20,6 +24,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import java.util.Locale
 
 @Composable
@@ -62,17 +67,34 @@ internal fun MultilingualProbes(
     val caption = MaterialTheme.typography.bodySmall
 
     Text("Multilingual line layout", style = MaterialTheme.typography.titleMedium)
-    ChoiceRow("Sample", LineSample.entries, sample) { sample = it }
-    ChoiceRow("Locale · $localeTag", listOf("Sample locale", "System locale", "ko-KR", "en-US", "ja-JP", "ar", "de-DE"),
-        locale) { locale = it }
-    ChoiceRow("Break strategy", WrapStrategy.entries, strategy) { strategy = it }
-    if (policy.hasEastAsianRules) {
-        ChoiceRow("East Asian line rules", WrapStrictness.entries, strictness) { strictness = it }
-        ChoiceRow("Word break", WrapWordBreak.entries, wordBreak) { wordBreak = it }
-    } else {
-        Text("East Asian line rules and phrase breaking require Android API 33.", style = caption)
+    val sampleControls: @Composable () -> Unit = {
+        ChoiceRow("Sample", LineSample.entries, sample) { sample = it }
+        ChoiceRow("Break strategy", WrapStrategy.entries, strategy) { strategy = it }
+        ChoiceRow("BiDi paragraph direction", LineDirection.entries, direction) { direction = it }
     }
-    ChoiceRow("BiDi paragraph direction", LineDirection.entries, direction) { direction = it }
+    val localeControls: @Composable () -> Unit = {
+        ChoiceRow("Locale · $localeTag", listOf("Sample locale", "System locale", "ko-KR", "en-US", "ja-JP", "ar", "de-DE"),
+            locale) { locale = it }
+        if (policy.hasEastAsianRules) {
+            ChoiceRow("East Asian line rules", WrapStrictness.entries, strictness) { strictness = it }
+            ChoiceRow("Word break", WrapWordBreak.entries, wordBreak) { wordBreak = it }
+        } else {
+            Text("East Asian line rules and phrase breaking require Android API 33.", style = caption)
+        }
+    }
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        if (maxWidth >= 680.dp) {
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(Modifier.weight(1f)) { sampleControls() }
+                Column(Modifier.weight(1f)) { localeControls() }
+            }
+        } else {
+            Column {
+                sampleControls()
+                localeControls()
+            }
+        }
+    }
     Toggle("Automatic hyphenation", hyphenate, "line-hyphenation") { hyphenate = it }
     LabeledSlider("Maximum line panel width (dp)", panelWidth, 140f..600f, "line-panel-width") { panelWidth = it }
 
