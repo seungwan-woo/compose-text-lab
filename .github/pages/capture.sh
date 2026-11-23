@@ -35,8 +35,12 @@ copy_test_output() {
   fi
   cp "${matches[0]}" "$destination"
 }
-for scene in render dark-font-scale gradient compose-selection view-selection \
-  compose-right-click view-right-click overflow-ellipsis overflow-clip marquee-start marquee-moving tablet-selection +  multilingual-lines; do
+scenes=(
+  render dark-font-scale gradient compose-selection view-selection
+  compose-right-click view-right-click overflow-ellipsis overflow-clip
+  marquee-start marquee-moving tablet-selection multilingual-lines
+)
+for scene in "${scenes[@]}"; do
   copy_test_output "ci-$scene.png" "$capture_dir/$scene.png"
 done
 copy_test_output rich-text-comparison.png "$capture_dir/rich-text-comparison.png"
