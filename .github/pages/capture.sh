@@ -19,7 +19,7 @@ mkdir -p "$page_dir"
 printf 'Android %s · API %s 에뮬레이터\n' "$android_release" "$runtime_api" > "$page_dir/runtime.txt"
 printf 'Testing Android %s, API %s (%s-byte pages)\n' "$android_release" "$runtime_api" "$(adb shell getconf PAGE_SIZE | tr -d '\r')"
 
-adb shell wm size 1800x1900
+adb shell wm size 2400x1900
 adb shell wm density 320
 ./gradlew --no-daemon :app:connectedDebugAndroidTest
 
@@ -36,7 +36,7 @@ copy_capture() {
   cp "${matches[0]}" "$capture_dir/$scene.png"
 }
 for scene in render dark-font-scale gradient compose-selection view-selection \
-  compose-right-click view-right-click overflow-ellipsis overflow-clip marquee-start marquee-moving; do
+  compose-right-click view-right-click overflow-ellipsis overflow-clip marquee-start marquee-moving tablet-selection; do
   copy_capture "$scene"
 done
 copy_capture rich-text-comparison rich-text-comparison

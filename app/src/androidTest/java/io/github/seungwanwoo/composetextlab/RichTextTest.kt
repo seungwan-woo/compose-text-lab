@@ -35,7 +35,7 @@ class RichTextTest {
             .performSemanticsAction(SemanticsActions.SetProgress) { it(1.6f) }
         rule.onNodeWithText("Hide settings").performClick()
         rule.onNodeWithText("Rich text", useUnmergedTree = true).performClick()
-        rule.onNodeWithTag("side-by-side").performClick().assertIsOn()
+        rule.onNodeWithText("Side by side").performClick().assertIsSelected()
 
         val compose = rule.onNodeWithTag("rich-compose").performScrollTo()
         val layouts = mutableListOf<TextLayoutResult>()

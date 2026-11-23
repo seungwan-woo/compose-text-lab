@@ -24,6 +24,7 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assume.assumeTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -39,12 +40,29 @@ class ResultCaptureTest {
         if (sample != null) {
             rule.onNodeWithTag("sample-input").performScrollTo().performTextReplacement(sample)
         }
+        rule.onNodeWithTag("limit-panel-width").performScrollTo().performClick().assertIsOn()
         rule.onNodeWithTag("panel-width").performScrollTo()
             .performSemanticsAction(SemanticsActions.SetProgress) { it(420f) }
         rule.onNodeWithText("Hide settings").performClick()
-        rule.onNodeWithTag("side-by-side").performScrollTo().performClick().assertIsOn()
+        rule.onNodeWithText("Side by side").performClick().assertIsSelected()
         selectTab("Effects")
         selectTab("Render")
+    }
+
+    @Test fun wideTabletKeepsSettingsAndBothSelectionPanelsVisible() {
+        assumeTrue(rule.activity.resources.configuration.screenWidthDp >= 1100)
+        rule.onNodeWithText("Reset settings").performScrollTo().performClick()
+        selectTab("Selection")
+        rule.onNodeWithText("Auto").assertIsSelected()
+        val settings = rule.onNodeWithTag("settings-pane").fetchSemanticsNode().boundsInRoot
+        val compose = rule.onNodeWithTag("compose-selectable-panel").fetchSemanticsNode().boundsInRoot
+        val view = rule.onNodeWithTag("view-selectable-panel").fetchSemanticsNode().boundsInRoot
+        rule.onNodeWithTag("compose-selectable-panel").assertIsDisplayed()
+        rule.onNodeWithTag("view-selectable-panel").assertIsDisplayed()
+        assertTrue("Settings and both comparison panels must be side by side",
+            settings.right < compose.left && compose.right < view.left && compose.top == view.top)
+        assertTrue("Comparison panels should share the remaining width", abs(compose.width - view.width) <= 1f)
+        capture("tablet-selection")
     }
 
     @Test fun captureComparisonScreens() {

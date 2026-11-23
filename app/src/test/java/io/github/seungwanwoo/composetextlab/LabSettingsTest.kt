@@ -4,6 +4,19 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class LabSettingsTest {
+    @Test fun legacySettingsKeepExplicitLayoutAndWidthChoices() {
+        val defaults = LabSettings.fromJson("""{"sideBySide":false,"previewWidthDp":320}""")
+        assertEquals(PanelLayout.Auto, defaults.panelLayout)
+        assertNull(defaults.previewWidthDp)
+
+        val customized = LabSettings.fromJson("""{"sideBySide":true,"previewWidthDp":420}""")
+        assertEquals(PanelLayout.SideBySide, customized.panelLayout)
+        assertEquals(420f, customized.previewWidthDp)
+
+        val explicit = LabSettings(panelLayout = PanelLayout.Stacked, previewWidthDp = 320f)
+        assertEquals(explicit, LabSettings.fromJson(explicit.toJson().toString()))
+    }
+
     @Test fun clampsPreviewInputsBeforeTheyReachEitherEngine() {
         val s = LabSettings(fontSizeSp = -4f, fontScale = 8f, maxLines = 0,
             letterSpacingEm = Float.NaN, lineHeightSp = Float.POSITIVE_INFINITY).normalized()

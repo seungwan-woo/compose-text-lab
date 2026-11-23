@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
@@ -101,19 +102,28 @@ internal fun TextView.applyProbeParagraphStyle(direction: ParagraphDirection) {
 
 @Composable
 internal fun ProbePair(s: LabSettings, compose: @Composable () -> Unit, view: @Composable () -> Unit) {
-    if (s.sideBySide) {
-        val direction = LocalLayoutDirection.current
-        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-            Row(Modifier.widthIn(max = (s.previewWidthDp * 2 + 8).dp).fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                CompositionLocalProvider(LocalLayoutDirection provides direction) {
-                    Box(Modifier.weight(1f)) { compose() }
-                    Box(Modifier.weight(1f)) { view() }
+    BoxWithConstraints(Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+        val paired = when (s.panelLayout) {
+            PanelLayout.Auto -> maxWidth >= 680.dp
+            PanelLayout.Stacked -> false
+            PanelLayout.SideBySide -> true
+        }
+        if (paired) {
+            val direction = LocalLayoutDirection.current
+            val rowWidth = s.previewWidthDp?.let { (it * 2 + 8).dp } ?: maxWidth
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                Row(Modifier.widthIn(max = rowWidth).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    CompositionLocalProvider(LocalLayoutDirection provides direction) {
+                        Box(Modifier.weight(1f)) { compose() }
+                        Box(Modifier.weight(1f)) { view() }
+                    }
                 }
             }
+        } else {
+            Column(Modifier.widthIn(max = (s.previewWidthDp ?: 760f).dp).fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)) { compose(); view() }
         }
-    } else {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { compose(); view() }
     }
 }
 
@@ -130,13 +140,13 @@ fun ProbePanel(title: String, modifier: Modifier = Modifier, content: @Composabl
 fun ComparisonProbes(s: LabSettings, font: FontAsset?, onMeasure: (ProbeMeasurement) -> Unit) {
     val color = MaterialTheme.colorScheme.onSurface
     val compose: @Composable () -> Unit = {
-        ProbePanel("Compose Text", Modifier.widthIn(max = s.previewWidthDp.dp).fillMaxWidth()
+        ProbePanel("Compose Text", Modifier.fillMaxWidth()
             .testTag("compose-render-panel")) {
             ComposeProbe(s, font, onMeasure)
         }
     }
     val view: @Composable () -> Unit = {
-        ProbePanel("Android TextView", Modifier.widthIn(max = s.previewWidthDp.dp).fillMaxWidth()) {
+        ProbePanel("Android TextView", Modifier.fillMaxWidth()) {
             AndroidView(factory = { context ->
                 MeasuredTextView(context).apply {
                     tag = "view-probe"

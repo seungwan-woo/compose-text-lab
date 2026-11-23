@@ -42,8 +42,13 @@ fun SettingsControls(s: LabSettings, fontName: String?, importing: Boolean,
         }
         LabeledSlider("Max lines", s.maxLines.toFloat(), 1f..20f, steps = 18) { onChange(s.copy(maxLines = it.toInt())) }
         LabeledSlider("Padding (dp)", s.paddingDp, 0f..32f) { onChange(s.copy(paddingDp = it)) }
-        LabeledSlider("Requested panel width (dp)", s.previewWidthDp, 120f..600f, "panel-width") {
-            onChange(s.copy(previewWidthDp = it))
+        Toggle("Limit panel width", s.previewWidthDp != null, "limit-panel-width") {
+            onChange(s.copy(previewWidthDp = if (it) 320f else null))
+        }
+        s.previewWidthDp?.let { width ->
+            LabeledSlider("Maximum panel width (dp)", width, 120f..600f, "panel-width") {
+                onChange(s.copy(previewWidthDp = it))
+            }
         }
         Toggle("Include font padding", s.includeFontPadding) { onChange(s.copy(includeFontPadding = it)) }
         Toggle("End ellipsis", s.ellipsis) { onChange(s.copy(ellipsis = it)) }

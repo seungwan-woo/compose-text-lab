@@ -38,6 +38,10 @@ RICH_TEXT = (
      "왼쪽은 Compose AnnotatedString, 오른쪽은 TextView Spannable입니다."),
 )
 
+TABLET = (
+    ("tablet-selection", "태블릿 · 1200dp 에뮬레이터", "설정과 선택 비교를 각각 스크롤할 수 있습니다."),
+)
+
 
 def screenshot_card(site: Path, scene: str, title: str, caption: str) -> str:
     image = f"screenshots/{scene}.png"
@@ -66,10 +70,11 @@ def main() -> None:
     report = (template.replace("{{RUN_URL}}", escape(run))
               .replace("{{COMMIT_URL}}", escape(f"{repo}/commit/{sha}"))
               .replace("{{RICH_TEXT_DOC_URL}}", escape(f"{repo}/blob/{sha}/docs/rich-text.md"))
+              .replace("{{SELECTION_DOC_URL}}", escape(f"{repo}/blob/{sha}/docs/selection-toolbar.md"))
               .replace("{{ANDROID_RUNTIME}}", escape(runtime))
               .replace("{{SHORT_SHA}}", escape(sha[:7])))
     for label, scenes in (("CARDS", SCENES), ("TOOLBARS", TOOLBARS), ("MOUSE_MENUS", MOUSE_MENUS),
-                          ("OVERFLOW", OVERFLOW), ("MARQUEE", MARQUEE), ("RICH_TEXT", RICH_TEXT)):
+                          ("OVERFLOW", OVERFLOW), ("MARQUEE", MARQUEE), ("RICH_TEXT", RICH_TEXT), ("TABLET", TABLET)):
         report = report.replace(f"{{{{{label}}}}}", "\n".join(screenshot_card(site, *scene) for scene in scenes))
     (site / "index.html").write_text(report, encoding="utf-8")
 
