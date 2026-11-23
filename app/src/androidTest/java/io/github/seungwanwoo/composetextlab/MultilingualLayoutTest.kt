@@ -28,14 +28,14 @@ class MultilingualLayoutTest {
     @Test fun comparesAppliedLinePoliciesAndExportsLiveBidiMeasurements() {
         rule.onNodeWithText("Reset settings").performScrollTo().performClick()
         rule.onNodeWithText("Hide settings").performClick()
-        rule.onNodeWithText("Side by side").performClick()
-        rule.onNodeWithText("Lines").performClick()
-        rule.onNodeWithText("Japanese").performScrollTo().performClick()
-        rule.onNodeWithText("Balanced").performScrollTo().performClick()
+        activate("Side by side")
+        activate("Lines")
+        activate("Japanese")
+        activate("Balanced")
 
         if (Build.VERSION.SDK_INT >= 33) {
-            rule.onNodeWithText("Strict").performScrollTo().performClick()
-            rule.onNodeWithText("Phrase").performScrollTo().performClick()
+            activate("Strict")
+            activate("Phrase")
         }
         val japanese = composeLayout()
         assertEquals(LineBreak.Strategy.Balanced, japanese.layoutInput.style.lineBreak.strategy)
@@ -52,7 +52,7 @@ class MultilingualLayoutTest {
             }
         }
 
-        rule.onNodeWithText("German").performScrollTo().performClick()
+        activate("German")
         rule.onNodeWithTag("line-hyphenation").performScrollTo().performClick().assertIsOn()
         assertEquals(Hyphens.Auto, composeLayout().layoutInput.style.hyphens)
         rule.runOnIdle {
@@ -62,11 +62,12 @@ class MultilingualLayoutTest {
             assertEquals("de-DE", textView().textLocale.toLanguageTag())
         }
 
-        rule.onNodeWithText("Arabic + digits").performScrollTo().performClick()
-        rule.onNodeWithText("First strong (RTL)").performScrollTo().performClick()
+        activate("Arabic + digits")
+        activate("First strong (RTL)")
         val compose = composeLayout()
         assertEquals(TextDirection.ContentOrRtl, compose.layoutInput.style.textDirection)
         assertEquals(ResolvedTextDirection.Rtl, compose.getParagraphDirection(0))
+        assertEquals(ResolvedTextDirection.Rtl, compose.getParagraphDirection(LineSample.Arabic.text.indexOf('\n') + 1))
 
         rule.onNodeWithText("Multilingual line layout").performScrollTo()
         capture()
@@ -88,6 +89,7 @@ class MultilingualLayoutTest {
             val layout = checkNotNull(view.layout)
             assertEquals(View.TEXT_DIRECTION_FIRST_STRONG_RTL, view.textDirection)
             assertEquals(Layout.DIR_RIGHT_TO_LEFT, layout.getParagraphDirection(0))
+            assertEquals(Layout.DIR_RIGHT_TO_LEFT, layout.getParagraphDirection(layout.lineCount - 1))
             val viewLines = viewData.getJSONArray("lines")
             assertEquals(layout.lineCount, viewLines.length())
             for (line in 0 until layout.lineCount) {
@@ -102,7 +104,7 @@ class MultilingualLayoutTest {
         }
         File(outputDirectory(), "ci-multilingual-lines.json").writeText(arabic.toString(2))
 
-        rule.onNodeWithText("Emoji ZWJ").performScrollTo().performClick()
+        activate("Emoji ZWJ")
         val emoji = copyReport()
         val text = emoji.getJSONObject("settings").getString("text")
         val family = "👩‍👩‍👧‍👦"
@@ -112,6 +114,10 @@ class MultilingualLayoutTest {
         val offsets = List(boundaries.length()) { boundaries.getInt(it) }
         assertTrue(start in offsets && start + family.length in offsets)
         assertFalse(offsets.any { it > start && it < start + family.length })
+    }
+
+    private fun activate(label: String) {
+        rule.onNodeWithText(label).performSemanticsAction(SemanticsActions.OnClick) { assertTrue(it()) }
     }
 
     private fun composeLayout(): TextLayoutResult {
