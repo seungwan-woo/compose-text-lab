@@ -26,6 +26,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
@@ -103,7 +104,11 @@ internal fun probeStyle(s: LabSettings, font: FontAsset?, linePolicy: LineLayout
         },
         shadow = if (s.effect == TextEffect.Shadow) Shadow(Color.Gray,
             Offset(shadowOffset, shadowOffset), with(density) { effects.shadowRadiusDp.dp.toPx() }) else null,
-        drawStyle = if (s.effect == TextEffect.Stroke) Stroke(with(density) { effects.strokeWidthDp.dp.toPx() }) else null,
+        drawStyle = when (s.effect) {
+            TextEffect.Stroke -> Stroke(with(density) { effects.strokeWidthDp.dp.toPx() })
+            TextEffect.FillStroke -> Fill
+            else -> null
+        },
         textMotion = if (s.effect == TextEffect.Motion) {
             if (effects.animatedTextMotion) TextMotion.Animated else TextMotion.Static
         } else null,
@@ -274,7 +279,8 @@ private fun Modifier.observeEffectWork(playback: EffectPlayback?): Modifier {
     return observed.then(layer).drawWithContent {
         work.draw++
         if (playback.effect == TextEffect.Motion && playback.options.motionPath == MotionPath.Canvas) {
-            translate(left = playback.offsetPx) { drawContent() }
+            val content = this
+            translate(left = playback.offsetPx) { content.drawContent() }
         } else {
             drawContent()
         }
