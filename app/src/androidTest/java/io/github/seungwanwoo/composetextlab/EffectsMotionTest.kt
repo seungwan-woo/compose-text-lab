@@ -59,6 +59,22 @@ class EffectsMotionTest {
         activate("Hide settings")
         activate("Side by side")
         activate("Effects")
+        // Capture the preview before the clipboard overlay appears.
+        activate("Variable font")
+        val variable = runProbe(capturePreview = true)
+        assertEquals("VariableFont", variable.getString("path"))
+        assertTrue(variable.getJSONObject("compose").getInt("textLayouts") > 0)
+        assertTrue(variable.getJSONObject("textView").getInt("textLayouts") > 0)
+        for (engine in listOf("compose", "textView")) {
+            val widths = variable.getJSONObject(engine)
+            assertNotEquals(widths.getDouble("firstLineWidthBeforePx"), widths.getDouble("firstLineWidthAfterPx"), 0.01)
+        }
+        val compose = composeLayout()
+        assertTrue(compose.getLineRight(0) > compose.getLineLeft(0))
+        rule.runOnIdle {
+            assertTrue(viewProbe().fontVariationSettings.orEmpty().contains("wdth"))
+        }
+
         activate("Motion")
         rule.onNodeWithTag("animated-text-motion").performScrollTo().performClick().assertIsOn()
         assertEquals(TextMotion.Animated, composeLayout().layoutInput.style.textMotion)
@@ -82,20 +98,6 @@ class EffectsMotionTest {
             assertTrue("$engine draw work: $work", work.getInt("draw") > 0)
         }
 
-        activate("Variable font")
-        val variable = runProbe(capturePreview = true)
-        assertEquals("VariableFont", variable.getString("path"))
-        assertTrue(variable.getJSONObject("compose").getInt("textLayouts") > 0)
-        assertTrue(variable.getJSONObject("textView").getInt("textLayouts") > 0)
-        for (engine in listOf("compose", "textView")) {
-            val widths = variable.getJSONObject(engine)
-            assertNotEquals(widths.getDouble("firstLineWidthBeforePx"), widths.getDouble("firstLineWidthAfterPx"), 0.01)
-        }
-        val compose = composeLayout()
-        assertTrue(compose.getLineRight(0) > compose.getLineLeft(0))
-        rule.runOnIdle {
-            assertTrue(viewProbe().fontVariationSettings.orEmpty().contains("wdth"))
-        }
         val report = JSONObject().put("layer", layer).put("redraw", redraw).put("variableFont", variable)
         File(outputDirectory(), "ci-effects-motion.json").writeText(report.toString(2))
     }
