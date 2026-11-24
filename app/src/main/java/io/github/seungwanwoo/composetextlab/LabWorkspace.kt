@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -37,13 +37,6 @@ internal fun LabWorkspace(
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val dockSettings = showSettings && maxWidth >= 1100.dp
         val controlsBelow = !dockSettings && (showSettings || controls != null)
-        val previewSize = if (controlsBelow) {
-            // A stable viewport keeps controls under the pointer while changes reflow the preview.
-            val previewFraction = if (showSettings) 0.55f else 0.68f
-            Modifier.height(maxHeight * previewFraction)
-        } else {
-            Modifier.fillMaxHeight()
-        }
         val options: @Composable ColumnScope.() -> Unit = {
             controls?.invoke()
             if (showSettings) settings()
@@ -60,15 +53,18 @@ internal fun LabWorkspace(
             }
             Column(Modifier.weight(1f).fillMaxHeight()) {
                 Column(
-                    Modifier.fillMaxWidth().then(previewSize).verticalScroll(contentScroll)
+                    Modifier.weight(1f).fillMaxWidth().verticalScroll(contentScroll)
                         .padding(16.dp).testTag("comparison-pane"),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     content = content,
                 )
                 if (controlsBelow) {
                     HorizontalDivider()
+                    // Short control lists use less space. The preview can reflow independently.
+                    val controlsFraction = if (showSettings) 0.45f else 0.32f
                     Column(
-                        Modifier.weight(1f).fillMaxWidth().verticalScroll(settingsScroll).padding(16.dp),
+                        Modifier.fillMaxWidth().heightIn(max = maxHeight * controlsFraction)
+                            .verticalScroll(settingsScroll).padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         content = options,
                     )
