@@ -2,14 +2,16 @@ package io.github.seungwanwoo.composetextlab
 
 import android.os.Handler
 import android.os.Looper
+import android.view.Choreographer
 import android.view.FrameMetrics
 import android.view.Window
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
+import kotlin.coroutines.resume
 import kotlin.math.roundToInt
+import kotlinx.coroutines.suspendCancellableCoroutine
 import org.json.JSONObject
 
 internal class EffectPlayback(
@@ -41,21 +43,20 @@ internal class EffectPlayback(
     suspend fun sample(window: Window?): JSONObject {
         applyProgress(0f)
         // Let the reset and the button state settle before opening the observation interval.
-        repeat(3) { withFrameNanos { } }
+        repeat(3) { nextDisplayFrame() }
         val composeBefore = compose.copy()
         val viewBefore = textView.copy()
         val frames = WindowFrames()
         window?.addOnFrameMetricsAvailableListener(frames, Handler(Looper.getMainLooper()))
         try {
-            val start = withFrameNanos { it }
+            val start = nextDisplayFrame()
             var progress: Float
             do {
-                progress = withFrameNanos { now ->
-                    ((now - start).toDouble() / PLAYBACK_NANOS).toFloat().coerceIn(0f, 1f)
-                }
+                val now = nextDisplayFrame()
+                progress = ((now - start).toDouble() / PLAYBACK_NANOS).toFloat().coerceIn(0f, 1f)
                 applyProgress(progress)
             } while (progress < 1f)
-            repeat(2) { withFrameNanos { } }
+            repeat(2) { nextDisplayFrame() }
         } finally {
             window?.removeOnFrameMetricsAvailableListener(frames)
         }
@@ -70,9 +71,20 @@ internal class EffectPlayback(
                 put("font", "Roboto Variable")
                 put("fromAxes", VariableAxes.at(0).asViewSettings())
                 put("toAxes", VariableAxes.at(fontStep).asViewSettings())
+            } else {
+                put("translationPx", offsetPx)
             }
         }
     }
+}
+
+// This interval observes Android View draws as well as Compose. Compose's test clock can
+// advance without a display traversal, so drive playback from real Android frame callbacks.
+private suspend fun nextDisplayFrame(): Long = suspendCancellableCoroutine { continuation ->
+    val choreographer = Choreographer.getInstance()
+    val callback = Choreographer.FrameCallback { continuation.resume(it) }
+    choreographer.postFrameCallback(callback)
+    continuation.invokeOnCancellation { choreographer.removeFrameCallback(callback) }
 }
 
 internal data class EffectWork(

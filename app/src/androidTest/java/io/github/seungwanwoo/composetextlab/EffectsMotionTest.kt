@@ -78,7 +78,8 @@ class EffectsMotionTest {
         val redraw = runProbe()
         assertEquals("Canvas", redraw.getString("path"))
         for (engine in listOf("compose", "textView")) {
-            assertTrue(redraw.getJSONObject(engine).toString(), redraw.getJSONObject(engine).getInt("draw") > 0)
+            val work = redraw.getJSONObject(engine)
+            assertTrue("$engine draw work: $work", work.getInt("draw") > 0)
         }
 
         activate("Variable font")
