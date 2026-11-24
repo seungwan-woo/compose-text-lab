@@ -62,7 +62,12 @@ class EffectsMotionTest {
         activate("Motion")
         rule.onNodeWithTag("animated-text-motion").performScrollTo().performClick().assertIsOn()
         assertEquals(TextMotion.Animated, composeLayout().layoutInput.style.textMotion)
-        rule.runOnIdle { assertTrue(viewProbe().paint.isSubpixelText) }
+        rule.runOnIdle {
+            val paint = viewProbe().paint
+            assertTrue(paint.isSubpixelText)
+            assertTrue(paint.isLinearText)
+            assertEquals(Paint.HINTING_OFF, paint.hinting)
+        }
 
         val layer = runProbe()
         assertEquals("Layer", layer.getString("path"))
@@ -77,7 +82,7 @@ class EffectsMotionTest {
         }
 
         activate("Variable font")
-        val variable = runProbe()
+        val variable = runProbe(capturePreview = true)
         assertEquals("VariableFont", variable.getString("path"))
         assertTrue(variable.getJSONObject("compose").getInt("textLayouts") > 0)
         assertTrue(variable.getJSONObject("textView").getInt("textLayouts") > 0)
@@ -90,16 +95,18 @@ class EffectsMotionTest {
         rule.runOnIdle {
             assertTrue(viewProbe().fontVariationSettings.orEmpty().contains("wdth"))
         }
-        capture(JSONObject().put("layer", layer).put("redraw", redraw).put("variableFont", variable))
+        val report = JSONObject().put("layer", layer).put("redraw", redraw).put("variableFont", variable)
+        File(outputDirectory(), "ci-effects-motion.json").writeText(report.toString(2))
     }
 
-    private fun runProbe(): JSONObject {
+    private fun runProbe(capturePreview: Boolean = false): JSONObject {
         val run = rule.onNodeWithText("Run FX sample").performScrollTo()
         run.performClick()
         val copy = rule.onNodeWithText("Copy FX report")
         rule.waitUntil(timeoutMillis = 15_000) {
             rule.onAllNodes(hasText("Copy FX report") and isEnabled()).fetchSemanticsNodes().isNotEmpty()
         }
+        if (capturePreview) capture()
         copy.performScrollTo().performClick()
         return rule.runOnIdle {
             val clipboard = rule.activity.getSystemService(ClipboardManager::class.java)
@@ -126,19 +133,19 @@ class EffectsMotionTest {
 
     private fun viewProbe(): TextView = rule.activity.window.decorView.findViewWithTag("view-probe")
 
-    private fun capture(report: JSONObject) {
+    private fun outputDirectory(): File =
+        (InstrumentationRegistry.getArguments().getString("additionalTestOutputDir")?.let(::File)
+            ?: InstrumentationRegistry.getInstrumentation().targetContext.filesDir).apply { mkdirs() }
+
+    private fun capture() {
         rule.onNodeWithTag("compose-probe").performScrollTo()
         rule.waitForIdle()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val directory = InstrumentationRegistry.getArguments().getString("additionalTestOutputDir")?.let(::File)
-            ?: instrumentation.targetContext.filesDir
-        directory.mkdirs()
         val image = checkNotNull(instrumentation.uiAutomation.takeScreenshot())
         try {
-            File(directory, "ci-effects-motion.png").outputStream().use {
+            File(outputDirectory(), "ci-effects-motion.png").outputStream().use {
                 check(image.compress(Bitmap.CompressFormat.PNG, 100, it))
             }
-            File(directory, "ci-effects-motion.json").writeText(report.toString(2))
         } finally {
             image.recycle()
         }

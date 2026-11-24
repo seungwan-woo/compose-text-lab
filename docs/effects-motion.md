@@ -1,6 +1,6 @@
 # Text Effect · TextMotion
 
-**Effects** 탭은 위쪽에서 두 렌더러의 결과를 보여주고, 별도 설정 영역에서 효과와 파라미터를 바꿉니다. Motion을 선택하면 Compose의 `TextMotion.Static` / `Animated`를 바꿀 수 있습니다. View 쪽에서는 같은 실험 조건으로 subpixel과 hinting 플래그를 조절합니다.
+**Effects** 탭은 위쪽에서 두 렌더러의 결과를 보여주고, 별도 설정 영역에서 효과와 파라미터를 바꿉니다. Motion을 선택하면 Compose의 `TextMotion.Static` / `Animated`를 바꿀 수 있습니다. View 쪽에서는 같은 실험 조건으로 subpixel·linear text·hinting 플래그를 조절합니다.
 
 | 항목 | 구현 및 검증 범위 |
 |---|---|
