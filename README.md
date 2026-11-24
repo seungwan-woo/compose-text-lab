@@ -35,7 +35,9 @@ Windows에서는 `gradlew.bat`를 사용합니다. SDK는 `ANDROID_HOME` 또는 
 | Lines | 다국어 줄바꿈, 하이픈, Locale, BiDi 방향, UTF-16 줄 경계, 기준선·가로 범위, ICU 경계와 커서 위치 JSON |
 | Report | 실제 레이아웃/위젯 px 치수, 줄 수, 첫/마지막 baseline, ellipsis/overflow, 단말/설정/폰트 식별자; JSON 복사/파일 저장 |
 
-**Comparison layout**의 기본값은 **Auto**입니다. 비교 영역이 680dp 이상이면 Compose와 TextView를 같은 너비로 나란히 표시하고, 더 좁으면 상하로 배치합니다. 창 너비가 1100dp 이상이면 설정을 왼쪽에 두고 비교 영역과 별도로 스크롤합니다. **Stacked**, **Side by side**를 직접 선택하거나 **Limit panel width**로 실험 너비를 제한할 수 있습니다. 입력 프로브의 편집 값은 독립적이며 sample text 변경 시 초기화됩니다.
+비교 결과는 탭 바로 아래에 표시되며, 설정을 스크롤하는 동안 자리를 유지합니다. 창이 1100dp 이상이고 설정이 열려 있으면 왼쪽에서 설정을 조작하고 오른쪽에서 결과를 봅니다. 그 외에는 탭별 조작과 공통 설정을 결과 아래의 별도 영역에서 스크롤합니다. 긴 결과도 비교 영역 안에서 따로 스크롤할 수 있습니다. **Hide settings**는 공통 설정을 접습니다.
+
+**Comparison layout**의 기본값은 **Auto**입니다. 비교 영역이 680dp 이상이면 Compose와 TextView를 같은 너비로 나란히 표시하고, 더 좁으면 상하로 배치합니다. **Stacked**, **Side by side**를 직접 선택하거나 **Limit panel width**로 실험 너비를 제한할 수 있습니다. 입력 프로브의 편집 값은 독립적이며 sample text 변경 시 초기화됩니다.
 
 두 엔진은 같은 굵기로 해석한 Android Typeface를 사용합니다. API 26–27에서는 NORMAL/BOLD로 정규화되며 100–900 가중치를 각각 재현하지 못합니다. Marquee에서는 두 엔진에 같은 한 줄 문자열(개행을 공백으로 변환)을 전달하며, 스크롤되는 텍스트 레이아웃 폭과 실제 표시 영역 폭을 따로 보고합니다. 입력 내용/선택은 탭·스타일·테마 변경 및 화면 재생성 시 유지됩니다.
 
