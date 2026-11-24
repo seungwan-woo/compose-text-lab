@@ -150,28 +150,40 @@ fun LabApp() {
                         PrimaryTabRow(selectedTabIndex = tab.ordinal, tabs = tabs)
                     }
                     key(tab) {
-                        LabWorkspace(showSettings, settings = {
-                            SettingsControls(s, importedFont?.displayName, importing || !fontRestored,
-                                onChange = ::change,
-                                onImport = { importFont.launch(arrayOf("*/*")) },
-                                onSystemSettings = {
-                                    runCatching { context.startActivity(Intent(Settings.ACTION_DISPLAY_SETTINGS)) }
-                                        .onFailure { status = "Display settings unavailable: ${it.message}" }
-                                })
-                            TextButton(onClick = { change(LabSettings()); status = "Settings reset" }) { Text("Reset settings") }
-                        }) {
-                            if (status.isNotBlank()) Text(status, style = MaterialTheme.typography.bodySmall)
-                            Text("System fontScale ${configuration.fontScale} · Preview ${previewConfiguration.fontScale} · API $sdkFull",
-                                style = MaterialTheme.typography.labelMedium)
-                            if (tab != LabTab.Report) {
-                                ChoiceRow("Comparison layout", PanelLayout.entries, s.panelLayout) { change(s.copy(panelLayout = it)) }
+                        val workspace: ShowComparison = { tabControls, preview ->
+                            LabWorkspace(showSettings, settings = {
+                                SettingsControls(s, importedFont?.displayName, importing || !fontRestored,
+                                    onChange = ::change,
+                                    onImport = { importFont.launch(arrayOf("*/*")) },
+                                    onSystemSettings = {
+                                        runCatching { context.startActivity(Intent(Settings.ACTION_DISPLAY_SETTINGS)) }
+                                            .onFailure { status = "Display settings unavailable: ${it.message}" }
+                                    })
+                                TextButton(onClick = { change(LabSettings()); status = "Settings reset" }) {
+                                    Text("Reset settings")
+                                }
+                            }, controls = if (tab == LabTab.Report) null else @Composable {
+                                ChoiceRow("Comparison layout", PanelLayout.entries, s.panelLayout) {
+                                    change(s.copy(panelLayout = it))
+                                }
+                                tabControls?.invoke()
+                            }) {
+                                if (status.isNotBlank()) Text(status, style = MaterialTheme.typography.bodySmall)
+                                Text("System fontScale ${configuration.fontScale} · Preview ${previewConfiguration.fontScale} · API $sdkFull",
+                                    style = MaterialTheme.typography.labelMedium)
+                                preview()
                             }
-                            when (tab) {
-                                LabTab.Render, LabTab.Effects -> {
-                                    if (tab == LabTab.Effects) {
+                        }
+                        when (tab) {
+                            LabTab.Render, LabTab.Effects -> {
+                                val effectControls: (@Composable () -> Unit)? = if (tab == LabTab.Effects) {
+                                    @Composable {
                                         ChoiceRow("Text effect", TextEffect.entries, s.effect) { change(s.copy(effect = it)) }
-                                        Text("Marquee uses one line. Outline and shadow bounds can extend beyond layout bounds.", style = MaterialTheme.typography.bodySmall)
+                                        Text("Marquee uses one line. Outline and shadow bounds can extend beyond layout bounds.",
+                                            style = MaterialTheme.typography.bodySmall)
                                     }
+                                } else null
+                                workspace(effectControls) {
                                     key(s, importedFont?.sha256, previewConfiguration, measuredEffect) {
                                         CompositionLocalProvider(LocalContext provides previewContext,
                                             LocalConfiguration provides previewContext.resources.configuration,
@@ -195,47 +207,47 @@ fun LabApp() {
                                             style = MaterialTheme.typography.bodySmall)
                                     }
                                 }
-                                LabTab.Selection -> {
-                                    Toggle("View custom ActionMode item", s.customViewMenu) { change(s.copy(customViewMenu = it)) }
-                                    TextButton(onClick = { events.clear() }) { Text("Clear events") }
-                                    key(s, importedFont?.sha256, previewConfiguration) {
-                                        CompositionLocalProvider(LocalContext provides previewContext,
-                                            LocalConfiguration provides previewContext.resources.configuration, LocalDensity provides previewDensity) {
-                                            SelectionProbes(s, importedFont, composeInput, { composeInput = it },
-                                                viewInput, { viewInput = it }, events.toList(), onEvent)
-                                        }
+                            }
+                            LabTab.Selection -> workspace({
+                                Toggle("View custom ActionMode item", s.customViewMenu) { change(s.copy(customViewMenu = it)) }
+                                TextButton(onClick = { events.clear() }) { Text("Clear events") }
+                            }) {
+                                key(s, importedFont?.sha256, previewConfiguration) {
+                                    CompositionLocalProvider(LocalContext provides previewContext,
+                                        LocalConfiguration provides previewContext.resources.configuration, LocalDensity provides previewDensity) {
+                                        SelectionProbes(s, importedFont, composeInput, { composeInput = it },
+                                            viewInput, { viewInput = it }, events.toList(), onEvent)
                                     }
-                                }
-                                LabTab.RichText -> {
-                                    key(s, importedFont?.sha256, previewConfiguration) {
-                                        CompositionLocalProvider(LocalContext provides previewContext,
-                                            LocalConfiguration provides previewContext.resources.configuration, LocalDensity provides previewDensity) {
-                                            RichTextProbes(s, importedFont)
-                                        }
-                                    }
-                                }
-                                LabTab.Lines -> tabState.SaveableStateProvider(LabTab.Lines.name) {
-                                    MultilingualProbes(s, importedFont, fontIdentity, environment, previewContext, previewDensity)
-                                }
-                                LabTab.Report -> {
-                                    Text("${measurements.size}/2 render measurements captured. Open Render or Effects after changing settings.")
-                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        Button(onClick = {
-                                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                            clipboard.setPrimaryClip(ClipData.newPlainText("Compose Text Lab report", report()))
-                                            status = "JSON copied"
-                                        }) { Text("Copy JSON") }
-                                        OutlinedButton(onClick = {
-                                            exportJson = report()
-                                            saveReport.launch("compose-text-lab-${System.currentTimeMillis()}.json")
-                                        }) { Text("Save JSON") }
-                                    }
-                                    Text("Includes shared sample text. Remote toolbar routing and pixel equivalence are unverified.",
-                                        style = MaterialTheme.typography.bodySmall)
-                                    Text(report(), style = MaterialTheme.typography.bodySmall)
                                 }
                             }
-                            Spacer(Modifier.height(16.dp))
+                            LabTab.RichText -> workspace(null) {
+                                key(s, importedFont?.sha256, previewConfiguration) {
+                                    CompositionLocalProvider(LocalContext provides previewContext,
+                                        LocalConfiguration provides previewContext.resources.configuration, LocalDensity provides previewDensity) {
+                                        RichTextProbes(s, importedFont)
+                                    }
+                                }
+                            }
+                            LabTab.Lines -> tabState.SaveableStateProvider(LabTab.Lines.name) {
+                                MultilingualProbes(s, importedFont, fontIdentity, environment, previewContext, previewDensity, workspace)
+                            }
+                            LabTab.Report -> workspace(null) {
+                                Text("${measurements.size}/2 render measurements captured. Open Render or Effects after changing settings.")
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Button(onClick = {
+                                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                        clipboard.setPrimaryClip(ClipData.newPlainText("Compose Text Lab report", report()))
+                                        status = "JSON copied"
+                                    }) { Text("Copy JSON") }
+                                    OutlinedButton(onClick = {
+                                        exportJson = report()
+                                        saveReport.launch("compose-text-lab-${System.currentTimeMillis()}.json")
+                                    }) { Text("Save JSON") }
+                                }
+                                Text("Includes shared sample text. Remote toolbar routing and pixel equivalence are unverified.",
+                                    style = MaterialTheme.typography.bodySmall)
+                                Text(report(), style = MaterialTheme.typography.bodySmall)
+                            }
                         }
                     }
                 }

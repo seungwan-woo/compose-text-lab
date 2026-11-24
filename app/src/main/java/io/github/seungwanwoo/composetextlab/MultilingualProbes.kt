@@ -35,6 +35,7 @@ internal fun MultilingualProbes(
     environment: Map<String, String>,
     previewContext: Context,
     previewDensity: Density,
+    showComparison: ShowComparison,
 ) {
     var sample by rememberSaveable { mutableStateOf(LineSample.Korean) }
     var locale by rememberSaveable { mutableStateOf("Sample locale") }
@@ -66,76 +67,78 @@ internal fun MultilingualProbes(
         view?.lines?.map { it.startUtf16 to it.endUtf16 }
     val caption = MaterialTheme.typography.bodySmall
 
-    Text("Multilingual line layout", style = MaterialTheme.typography.titleMedium)
-    val sampleControls: @Composable () -> Unit = {
-        ChoiceRow("Sample", LineSample.entries, sample) { sample = it }
-        ChoiceRow("Break strategy", WrapStrategy.entries, strategy) { strategy = it }
-        ChoiceRow("BiDi paragraph direction", LineDirection.entries, direction) { direction = it }
-    }
-    val localeControls: @Composable () -> Unit = {
-        ChoiceRow("Locale · $localeTag", listOf("Sample locale", "System locale", "ko-KR", "en-US", "ja-JP", "ar", "de-DE"),
-            locale) { locale = it }
-        if (policy.hasEastAsianRules) {
-            ChoiceRow("East Asian line rules", WrapStrictness.entries, strictness) { strictness = it }
-            ChoiceRow("Word break", WrapWordBreak.entries, wordBreak) { wordBreak = it }
-        } else {
-            Text("East Asian line rules and phrase breaking require Android API 33.", style = caption)
+    showComparison({
+        val sampleControls: @Composable () -> Unit = {
+            ChoiceRow("Sample", LineSample.entries, sample) { sample = it }
+            ChoiceRow("Break strategy", WrapStrategy.entries, strategy) { strategy = it }
+            ChoiceRow("BiDi paragraph direction", LineDirection.entries, direction) { direction = it }
         }
-    }
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
-        if (maxWidth >= 680.dp) {
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Column(Modifier.weight(1f)) { sampleControls() }
-                Column(Modifier.weight(1f)) { localeControls() }
-            }
-        } else {
-            Column {
-                sampleControls()
-                localeControls()
+        val localeControls: @Composable () -> Unit = {
+            ChoiceRow("Locale · $localeTag", listOf("Sample locale", "System locale", "ko-KR", "en-US", "ja-JP", "ar", "de-DE"),
+                locale) { locale = it }
+            if (policy.hasEastAsianRules) {
+                ChoiceRow("East Asian line rules", WrapStrictness.entries, strictness) { strictness = it }
+                ChoiceRow("Word break", WrapWordBreak.entries, wordBreak) { wordBreak = it }
+            } else {
+                Text("East Asian line rules and phrase breaking require Android API 33.", style = caption)
             }
         }
-    }
-    Toggle("Automatic hyphenation", hyphenate, "line-hyphenation") { hyphenate = it }
-    LabeledSlider("Maximum line panel width (dp)", panelWidth, 140f..600f, "line-panel-width") { panelWidth = it }
-
-    key(probe, policy, font?.sha256, previewContext) {
-        CompositionLocalProvider(LocalContext provides previewContext,
-            LocalConfiguration provides previewContext.resources.configuration, LocalDensity provides previewDensity) {
-            ComparisonProbes(probe, font, policy, icu.graphemes) { value ->
-                measurements = measurements + (value.engine to value)
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            if (maxWidth >= 680.dp) {
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Column(Modifier.weight(1f)) { sampleControls() }
+                    Column(Modifier.weight(1f)) { localeControls() }
+                }
+            } else {
+                Column {
+                    sampleControls()
+                    localeControls()
+                }
             }
         }
-    }
-    if (compose != null && view != null) {
-        val ranges = if (sameRanges) "match" else "differ"
-        val scope = if (complete) "All line ranges" else "Measured line ranges (clipped)"
-        val widths = if (sameWidth) "Shared text width ${compose.layoutWidthPx} px"
-            else "Text widths ${compose.layoutWidthPx} / ${view.layoutWidthPx} px (Compose / View)"
-        Text("$scope $ranges · $widths", style = MaterialTheme.typography.labelLarge)
-        Text("UTF-16 ranges [start, end) · paragraph direction · widget-relative coordinates in px", style = caption)
-        ProbePair(probe, { LineMetricsPanel("Compose lines", compose.lines) },
-            { LineMetricsPanel("TextView lines", view.lines) })
-    }
-    Text("ICU boundaries · ${icu.graphemes.size} grapheme · ${icu.words.size} word · " +
-        "${icu.lineOpportunities.size} line opportunities", style = caption)
-    Text("Line opportunities are ICU diagnostic offsets. The rows above come from the rendered layouts.", style = caption)
-    val context = LocalContext.current
-    OutlinedButton(enabled = compose != null && view != null, onClick = {
+        Toggle("Automatic hyphenation", hyphenate, "line-hyphenation") { hyphenate = it }
+        LabeledSlider("Maximum line panel width (dp)", panelWidth, 140f..600f, "line-panel-width") { panelWidth = it }
+    }) {
+        Text("Multilingual line layout", style = MaterialTheme.typography.titleMedium)
+        key(probe, policy, font?.sha256, previewContext) {
+            CompositionLocalProvider(LocalContext provides previewContext,
+                LocalConfiguration provides previewContext.resources.configuration, LocalDensity provides previewDensity) {
+                ComparisonProbes(probe, font, policy, icu.graphemes) { value ->
+                    measurements = measurements + (value.engine to value)
+                }
+            }
+        }
         if (compose != null && view != null) {
-            val report = buildReport(probe, environment + ("experiment" to "MultilingualLines"),
-                fontIdentity, listOf(compose, view)).apply {
-                put("measurementScope", "rendered multilingual lines and BiDi carets at ICU grapheme starts")
-                put("lineSample", sample.name)
-                put("linePolicy", policy.toJson())
-                put("icuBoundaries", icu.toJson())
-                put("sameLayoutWidthPx", sameWidth)
-                put("completeTextVisible", complete)
-                put("matchingMeasuredLineRanges", sameRanges)
-            }
-            context.getSystemService(ClipboardManager::class.java)
-                .setPrimaryClip(ClipData.newPlainText("Multilingual line report", report.toString(2)))
+            val ranges = if (sameRanges) "match" else "differ"
+            val scope = if (complete) "All line ranges" else "Measured line ranges (clipped)"
+            val widths = if (sameWidth) "Shared text width ${compose.layoutWidthPx} px"
+                else "Text widths ${compose.layoutWidthPx} / ${view.layoutWidthPx} px (Compose / View)"
+            Text("$scope $ranges · $widths", style = MaterialTheme.typography.labelLarge)
+            Text("UTF-16 ranges [start, end) · paragraph direction · widget-relative coordinates in px", style = caption)
+            ProbePair(probe, { LineMetricsPanel("Compose lines", compose.lines) },
+                { LineMetricsPanel("TextView lines", view.lines) })
         }
-    }) { Text("Copy line report") }
+        Text("ICU boundaries · ${icu.graphemes.size} grapheme · ${icu.words.size} word · " +
+            "${icu.lineOpportunities.size} line opportunities", style = caption)
+        Text("Line opportunities are ICU diagnostic offsets. The rows above come from the rendered layouts.", style = caption)
+        val context = LocalContext.current
+        OutlinedButton(enabled = compose != null && view != null, onClick = {
+            if (compose != null && view != null) {
+                val report = buildReport(probe, environment + ("experiment" to "MultilingualLines"),
+                    fontIdentity, listOf(compose, view)).apply {
+                    put("measurementScope", "rendered multilingual lines and BiDi carets at ICU grapheme starts")
+                    put("lineSample", sample.name)
+                    put("linePolicy", policy.toJson())
+                    put("icuBoundaries", icu.toJson())
+                    put("sameLayoutWidthPx", sameWidth)
+                    put("completeTextVisible", complete)
+                    put("matchingMeasuredLineRanges", sameRanges)
+                }
+                context.getSystemService(ClipboardManager::class.java)
+                    .setPrimaryClip(ClipData.newPlainText("Multilingual line report", report.toString(2)))
+            }
+        }) { Text("Copy line report") }
+    }
 }
 
 @Composable
