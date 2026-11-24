@@ -33,6 +33,11 @@ MARQUEE = (
     ("marquee-moving", "Marquee · 나중 프레임", "두 패널의 텍스트 위치가 바뀌었는지 검사했습니다."),
 )
 
+EFFECTS_MOTION = (
+    ("effects-motion", "가변 폰트 · Effects 계측",
+     "같은 Roboto Variable의 굵기와 폭 축을 변경하며 레이아웃과 그리기 호출을 관찰합니다."),
+)
+
 MULTILINGUAL = (
     ("multilingual-lines", "BiDi · 아랍어와 숫자",
      "같은 텍스트 너비에서 실제 줄 경계, 문단 방향, 기준선, 가로 범위를 비교합니다."),
@@ -77,11 +82,12 @@ def main() -> None:
               .replace("{{RICH_TEXT_DOC_URL}}", escape(f"{repo}/blob/{sha}/docs/rich-text.md"))
               .replace("{{SELECTION_DOC_URL}}", escape(f"{repo}/blob/{sha}/docs/selection-toolbar.md"))
               .replace("{{LINE_LAYOUT_DOC_URL}}", escape(f"{repo}/blob/{sha}/docs/multilingual-lines.md"))
+              .replace("{{EFFECTS_MOTION_DOC_URL}}", escape(f"{repo}/blob/{sha}/docs/effects-motion.md"))
               .replace("{{ANDROID_RUNTIME}}", escape(runtime))
               .replace("{{SHORT_SHA}}", escape(sha[:7])))
     for label, scenes in (("CARDS", SCENES), ("TOOLBARS", TOOLBARS), ("MOUSE_MENUS", MOUSE_MENUS),
                           ("OVERFLOW", OVERFLOW), ("MARQUEE", MARQUEE), ("RICH_TEXT", RICH_TEXT),
-                          ("TABLET", TABLET), ("MULTILINGUAL", MULTILINGUAL)):
+                          ("TABLET", TABLET), ("MULTILINGUAL", MULTILINGUAL), ("EFFECTS_MOTION", EFFECTS_MOTION)):
         report = report.replace(f"{{{{{label}}}}}", "\n".join(screenshot_card(site, *scene) for scene in scenes))
     (site / "index.html").write_text(report, encoding="utf-8")
 

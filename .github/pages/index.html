@@ -35,9 +35,19 @@
       <a href="{{COMMIT_URL}}">소스 {{SHORT_SHA}}</a>
       <a href="#rich-text">Rich Text 비교</a>
       <a href="#multilingual">다국어 줄바꿈</a>
+      <a href="#effects-motion">효과와 Motion</a>
       <a href="#tablet">태블릿 레이아웃</a>
     </nav>
   </header>
+  <section aria-labelledby="effects-motion">
+    <h2 id="effects-motion">Text Effect · TextMotion</h2>
+    <p>레이어 이동, Canvas 다시 그리기, 가변 폰트 변경을 각각 재생했습니다.
+       JSON에 두 렌더러의 호출 횟수와 같은 앱 창에서 수집한 프레임 시간을 기록합니다.</p>
+    <p><a href="effects-motion.json">실제 계측 JSON</a> · <a href="{{EFFECTS_MOTION_DOC_URL}}">계측 방법과 검증 범위</a></p>
+    <div class="gallery">
+{{EFFECTS_MOTION}}
+    </div>
+  </section>
   <section aria-labelledby="multilingual">
     <h2 id="multilingual">ICU · BiDi · 다국어 줄바꿈</h2>
     <p>아랍어·라틴 문자·숫자가 섞인 문단의 BiDi 방향과 줄 배치를 같은 폭에서 비교했습니다.
