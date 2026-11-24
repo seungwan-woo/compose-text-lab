@@ -2,7 +2,9 @@ package io.github.seungwanwoo.composetextlab
 
 import android.content.ClipboardManager
 import android.graphics.Bitmap
+import android.graphics.Paint
 import android.widget.TextView
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -18,6 +20,40 @@ import org.junit.Test
 class EffectsMotionTest {
     @get:Rule val rule = createAndroidComposeRule<MainActivity>()
 
+    @Test fun appliesShadowAndStrokeAtDarkThemeAndScaledText() {
+        rule.onNodeWithText("Reset settings").performScrollTo().performClick()
+        rule.onNodeWithText("Theme").performScrollTo()
+        activate("Dark")
+        rule.onNodeWithTag("system-scale").performScrollTo().performClick()
+        changeSlider("preview-scale", 1.3f)
+        activate("Effects")
+        activate("Shadow")
+        changeSlider("Shadow offset X/Y (dp)", 5f)
+        changeSlider("Shadow blur radius (dp)", 7f)
+        val shadow = checkNotNull(composeLayout().layoutInput.style.shadow)
+        rule.runOnIdle {
+            val view = viewProbe()
+            val density = view.resources.displayMetrics.density
+            assertEquals(1.3f, view.resources.configuration.fontScale, 0.01f)
+            assertEquals(5f * density, shadow.offset.x, 0.1f)
+            assertEquals(7f * density, shadow.blurRadius, 0.1f)
+            assertEquals(shadow.offset.x, view.shadowDx, 0.1f)
+            assertEquals(shadow.blurRadius, view.shadowRadius, 0.1f)
+        }
+
+        activate("Stroke")
+        changeSlider("Stroke width (dp)", 4f)
+        val strokeLayout = composeLayout()
+        val stroke = strokeLayout.layoutInput.style.drawStyle as Stroke
+        rule.runOnIdle {
+            assertEquals(Paint.Style.STROKE, viewProbe().paint.style)
+            assertEquals(stroke.width, viewProbe().paint.strokeWidth, 0.1f)
+        }
+        activate("Fill + stroke")
+        assertEquals(strokeLayout.lineCount, composeLayout().lineCount)
+        rule.runOnIdle { assertEquals(Paint.Style.FILL, viewProbe().paint.style) }
+    }
+
     @Test fun samplesLayerDrawAndVariableFontWorkInBothEngines() {
         rule.onNodeWithText("Reset settings").performScrollTo().performClick()
         activate("Hide settings")
@@ -30,8 +66,8 @@ class EffectsMotionTest {
 
         val layer = runProbe()
         assertEquals("Layer", layer.getString("path"))
-        assertTrue(layer.getJSONObject("compose").getInt("textLayouts") == 0)
-        assertTrue(layer.getJSONObject("textView").getInt("measure") == 0)
+        assertEquals(0, layer.getJSONObject("compose").getInt("textLayouts"))
+        assertEquals(0, layer.getJSONObject("textView").getInt("textLayouts"))
 
         activate("Canvas redraw")
         val redraw = runProbe()
@@ -44,7 +80,11 @@ class EffectsMotionTest {
         val variable = runProbe()
         assertEquals("VariableFont", variable.getString("path"))
         assertTrue(variable.getJSONObject("compose").getInt("textLayouts") > 0)
-        assertTrue(variable.getJSONObject("textView").getInt("measure") > 0)
+        assertTrue(variable.getJSONObject("textView").getInt("textLayouts") > 0)
+        for (engine in listOf("compose", "textView")) {
+            val widths = variable.getJSONObject(engine)
+            assertNotEquals(widths.getDouble("firstLineWidthBeforePx"), widths.getDouble("firstLineWidthAfterPx"), 0.01)
+        }
         val compose = composeLayout()
         assertTrue(compose.getLineRight(0) > compose.getLineLeft(0))
         rule.runOnIdle {
@@ -69,6 +109,12 @@ class EffectsMotionTest {
 
     private fun activate(label: String) {
         rule.onNodeWithText(label).performSemanticsAction(SemanticsActions.OnClick) { assertTrue(it()) }
+    }
+
+    private fun changeSlider(tag: String, value: Float) {
+        rule.onNodeWithTag(tag).performScrollTo().performSemanticsAction(SemanticsActions.SetProgress) {
+            assertTrue(it(value))
+        }
     }
 
     private fun composeLayout(): TextLayoutResult {

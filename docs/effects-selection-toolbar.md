@@ -9,7 +9,7 @@
 | `TextMotion.Animated` | 애니메이션 중 서브픽셀 위치와 힌팅 정책을 `TextStyle`에서 지정합니다. TextView에는 같은 단일 옵션이 없고 필요하면 `Paint`를 제어합니다. |
 | `AnnotatedString`과 `LinkAnnotation` | 스타일 범위와 클릭 가능한 링크를 선언합니다. 링크와 부분 스타일 자체는 TextView도 `Spannable`, `ClickableSpan`, `URLSpan`으로 지원합니다. |
 
-이 표는 API 차이를 설명합니다. 실험 앱은 위 API의 결과를 자동으로 비교하지 않습니다.
+Effects의 현재 실험과 계측 범위는 [Text Effect · TextMotion](effects-motion.md)에 정리했습니다.
 
 ## 구현 대응
 
@@ -23,7 +23,7 @@
 | 편집 | BasicTextField + TextFieldValue | EditText |
 | 확장 메뉴 | 기본 Compose 플랫폼 통합 경로 | 선택/삽입 ActionMode.Callback에 Lab item 추가 |
 
-Marquee는 본질적으로 단일 줄 실험이며 maxLines/줄바꿈 설정을 대신합니다. 두 엔진의 속도, 초기 지연, 반복 간격과 포커스 정책을 동일하게 맞춘 실험은 아닙니다. Stroke는 outline-only입니다. 그림자/그라데이션/외곽선은 레이아웃 외부로 그려질 수 있습니다.
+Marquee는 단일 줄 실험입니다. 두 엔진에 반복 설정을 적용하고 Compose의 속도와 간격은 별도로 조절할 수 있습니다. TextView의 속도, 초기 지연과 간격은 플랫폼 구현을 따릅니다. Stroke는 외곽선만, Fill + stroke는 채우기와 외곽선을 두 번에 나눠 그립니다. 그림자와 외곽선은 레이아웃 외부로 그려질 수 있습니다.
 
 View ActionMode callback은 create/prepare/click/destroy를 기록하고 Lab item을 추가합니다. 다른 항목은 false를 반환하여 플랫폼 기본 처리를 유지합니다. Compose 편집 필드는 TextFieldValue의 실제 selection offset을 기록합니다. 선택 전용 Compose Text는 공개 SelectionContainer에서 선택 offset을 직접 노출하지 않으므로 추정값을 기록하지 않습니다. 최신 ContextMenu 경로를 포함한 내부 popup/provider/service 동작은 이 로그로 판별할 수 없습니다.
 

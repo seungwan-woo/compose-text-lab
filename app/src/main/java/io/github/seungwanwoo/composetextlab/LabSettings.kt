@@ -4,7 +4,12 @@ import org.json.JSONObject
 
 enum class ThemeChoice { System, Light, Dark, Dynamic }
 enum class FontChoice { System, Sans, Serif, Monospace, Imported }
-enum class TextEffect { None, Shadow, Gradient, Stroke, Marquee }
+enum class TextEffect(private val label: String) {
+    None("None"), Shadow("Shadow"), Gradient("Gradient"), Stroke("Stroke"), Marquee("Marquee"),
+    FillStroke("Fill + stroke"), Motion("Motion"), VariableFont("Variable font");
+
+    override fun toString() = label
+}
 enum class ParagraphDirection { FirstStrong, LTR, RTL }
 enum class PanelLayout(private val label: String) {
     Auto("Auto"), Stacked("Stacked"), SideBySide("Side by side");
@@ -31,6 +36,7 @@ data class LabSettings(
     val useSystemFontScale: Boolean = true,
     val fontScale: Float = 1f,
     val effect: TextEffect = TextEffect.None,
+    val effectSettings: EffectSettings = EffectSettings(),
     val customViewMenu: Boolean = false,
 ) {
     fun renderText(): String = if (effect == TextEffect.Marquee) text.replace(Regex("\r\n|\r|\n"), " ") else text
@@ -44,6 +50,7 @@ data class LabSettings(
         maxLines = maxLines.coerceIn(1, 20),
         paddingDp = paddingDp.finiteOr(8f).coerceIn(0f, 32f),
         previewWidthDp = previewWidthDp?.takeIf { it.isFinite() }?.coerceIn(120f, 600f),
+        effectSettings = effectSettings.normalized(),
     )
     fun effectiveFontScale(systemScale: Float): Float =
         if (useSystemFontScale) systemScale else normalized().fontScale
@@ -57,6 +64,7 @@ data class LabSettings(
         put("previewWidthDp", previewWidthDp ?: JSONObject.NULL); put("panelLayout", panelLayout.name)
         put("showBaselines", showBaselines); put("useSystemFontScale", useSystemFontScale)
         put("fontScale", fontScale); put("effect", effect.name); put("customViewMenu", customViewMenu)
+        put("effectSettings", effectSettings.toJson())
     }
 
     companion object {
@@ -85,6 +93,7 @@ data class LabSettings(
                 useSystemFontScale = j.optBoolean("useSystemFontScale", true),
                 fontScale = j.optDouble("fontScale", 1.0).toFloat(),
                 effect = TextEffect.valueOf(j.optString("effect", d.effect.name)),
+                effectSettings = EffectSettings.fromJson(j.optJSONObject("effectSettings")),
                 customViewMenu = j.optBoolean("customViewMenu"),
             ).normalized()
         }.getOrDefault(LabSettings())

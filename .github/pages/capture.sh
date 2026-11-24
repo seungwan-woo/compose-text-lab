@@ -38,10 +38,11 @@ copy_test_output() {
 scenes=(
   render dark-font-scale gradient compose-selection view-selection
   compose-right-click view-right-click overflow-ellipsis overflow-clip
-  marquee-start marquee-moving tablet-selection multilingual-lines
+  marquee-start marquee-moving tablet-selection multilingual-lines effects-motion
 )
 for scene in "${scenes[@]}"; do
   copy_test_output "ci-$scene.png" "$capture_dir/$scene.png"
 done
 copy_test_output rich-text-comparison.png "$capture_dir/rich-text-comparison.png"
 copy_test_output ci-multilingual-lines.json "$page_dir/multilingual-lines.json"
+copy_test_output ci-effects-motion.json "$page_dir/effects-motion.json"

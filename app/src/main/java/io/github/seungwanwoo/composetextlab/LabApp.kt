@@ -1,5 +1,6 @@
 package io.github.seungwanwoo.composetextlab
 
+import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -128,7 +129,8 @@ fun LabApp() {
         "composeBom" to "2025.12.00", "appVersion" to BuildConfig.VERSION_NAME,
     )
     val fontIdentity = if (s.font == FontChoice.Imported) "${importedFont?.displayName}; sha256=${importedFont?.sha256}" else s.font.name
-    fun report() = buildReport(s.copy(effect = measuredEffect), environment, fontIdentity,
+    fun report() = buildReport(s.copy(effect = measuredEffect), environment,
+        if (measuredEffect == TextEffect.VariableFont) "Roboto Variable (bundled)" else fontIdentity,
         measurements.values.sortedBy { it.engine }).toString(2)
 
     MaterialTheme(colorScheme = colors) {
@@ -177,11 +179,31 @@ fun LabApp() {
                         }
                         when (tab) {
                             LabTab.Render, LabTab.Effects -> {
+                                val playback = remember(s, previewContext, experiment, importedFont?.sha256) {
+                                    if (experiment == TextEffect.Motion || experiment == TextEffect.VariableFont) {
+                                        EffectPlayback(experiment, s.effectSettings, with(previewDensity) { 16.dp.toPx() })
+                                    } else null
+                                }
+                                var runId by remember(playback) { mutableIntStateOf(0) }
+                                var running by remember(playback) { mutableStateOf(false) }
+                                var effectReport by remember(playback) { mutableStateOf<org.json.JSONObject?>(null) }
+                                LaunchedEffect(playback, runId) {
+                                    if (playback != null && runId > 0) {
+                                        running = true
+                                        effectReport = null
+                                        try {
+                                            effectReport = playback.sample((context as? Activity)?.window).apply {
+                                                put("settings", s.toJson())
+                                                put("environment", org.json.JSONObject(environment))
+                                            }
+                                        } finally {
+                                            running = false
+                                        }
+                                    }
+                                }
                                 val effectControls: (@Composable () -> Unit)? = if (tab == LabTab.Effects) {
                                     @Composable {
-                                        ChoiceRow("Text effect", TextEffect.entries, s.effect) { change(s.copy(effect = it)) }
-                                        Text("Marquee uses one line. Outline and shadow bounds can extend beyond layout bounds.",
-                                            style = MaterialTheme.typography.bodySmall)
+                                        EffectControls(s, ::change, running) { runId++ }
                                     }
                                 } else null
                                 workspace(effectControls) {
@@ -189,7 +211,7 @@ fun LabApp() {
                                         CompositionLocalProvider(LocalContext provides previewContext,
                                             LocalConfiguration provides previewContext.resources.configuration,
                                             LocalDensity provides previewDensity) {
-                                            ComparisonProbes(s.copy(effect = experiment), importedFont) { value ->
+                                            ComparisonProbes(s.copy(effect = experiment), importedFont, playback = playback) { value ->
                                                 measurements = measurements + (value.engine to value)
                                             }
                                             if (tab == LabTab.Render) {
@@ -202,6 +224,7 @@ fun LabApp() {
                                             }
                                         }
                                     }
+                                    if (playback != null) EffectWorkReport(effectReport, running)
                                     measurements.values.sortedBy { it.engine }.forEach { m ->
                                         Text("${m.engine}: widget ${m.widgetWidthPx}×${m.widgetHeightPx}px · layout ${m.layoutWidthPx}×${m.layoutHeightPx}px\n" +
                                             "lines=${m.lineCount}, baseline=${m.firstBaselineFromWidgetTopPx}/${m.lastBaselineFromWidgetTopPx}px · ellipsis=${m.ellipsized}, overflow=${m.overflow}",

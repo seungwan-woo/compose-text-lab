@@ -29,7 +29,7 @@ Windows에서는 `gradlew.bat`를 사용합니다. SDK는 `ANDROID_HOME` 또는 
 | Theme | System/Light/Dark/Dynamic, 명시적 공통 스타일과 별도의 테마 기본 텍스트 비교 |
 | Font | System/Sans/Serif/Monospace, 시스템 문서 선택기를 통한 TTF/OTF 가져오기 및 복원 |
 | Font scale | 실제 시스템 값 추종 또는 미리보기 한정 0.8–2.0 Configuration override; 시스템 화면 설정 바로가기 |
-| Effects | None/Shadow/Gradient/Stroke/Marquee, 동일 글꼴/설정으로 비교 |
+| Effects | Shadow, Gradient, Stroke, Fill + stroke, Marquee, TextMotion, 가변 폰트 재생 및 호출 계측 |
 | Selection | SelectionContainer, BasicTextField, TextView, EditText, View 커스텀 ActionMode 메뉴, 선택 offset/ActionMode 이벤트 로그 |
 | Rich text | AnnotatedString ↔ Spannable, 부분 스타일, URL·커스텀 클릭, InlineTextContent ↔ ReplacementSpan, 기준선·높이 |
 | Lines | 다국어 줄바꿈, 하이픈, Locale, BiDi 방향, UTF-16 줄 경계, 기준선·가로 범위, ICU 경계와 커서 위치 JSON |
@@ -46,6 +46,7 @@ TTF/OTF는 앱 내부에 복사하여 재실행 시 복원합니다. 20 MiB 제�
 ## 측정 해석
 
 다국어 샘플과 줄바꿈 제어, 계측값 읽는 법은 [ICU · BiDi · 다국어 줄바꿈](docs/multilingual-lines.md)에 정리했습니다.
+효과와 애니메이션 계측은 [Text Effect · TextMotion](docs/effects-motion.md)을 참고하세요.
 
 - **Paragraph direction**은 두 엔진에 공통으로 적용됩니다. 기본값 `FirstStrong`은 문단에 처음 나타나는 강한 방향의 문자를 따릅니다. `LTR`과 `RTL`은 문단의 기본 방향을 고정하되, 문단 안의 아랍어와 라틴 문자 배열에는 여전히 Unicode 양방향 규칙이 적용됩니다. 테마 기본 프로브에는 이 설정을 적용하지 않습니다.
 - 공통 스타일 프로브에는 대응 속성을 명시합니다. 테마 기본 프로브는 Material 3 Typography와 Framework textAppearance의 실제 기본값을 별도로 보여주며, 이 둘의 일치를 전제로 하지 않습니다.
@@ -54,7 +55,7 @@ TTF/OTF는 앱 내부에 복사하여 재실행 시 복원합니다. 20 MiB 제�
 - Compose lineHeight와 TextView `setLineSpacing`은 정책이 다릅니다. View에는 요청 lineHeight와 `Paint.fontMetrics` 높이 차이를 extra spacing으로 적용하며 마지막 줄 아래 여백은 동일하지 않을 수 있습니다. 실제 결과를 확인하세요.
 - Layout 줄 수와 위젯 높이, ellipsis와 overflow는 구분합니다. View의 숨겨진 원문 전체 줄 수를 알아낸다고 주장하지 않습니다. 효과의 그림자/선 외곽 bounds는 레이아웃 bounds와 다릅니다.
 - FontScale/테마/문자열/폰트/실험 변경 시 이전 측정은 버립니다. 표시하지 않은 화면의 측정값은 생성하지 않습니다. 선택/입력 프로브는 별도이며 렌더링 수치 보고 대상은 아닙니다.
-- 이 앱은 자동 픽셀 diff, 성능 벤치마크, glyph ink bounds 측정, Text Motion 계측, Compose 커스텀 ContextMenu provider를 구현하지 않습니다.
+- 자동 픽셀 비교, 글리프 잉크 경계와 Compose 커스텀 ContextMenu provider는 별도 실험 영역입니다. Effects의 프레임 값은 두 엔진을 함께 실행한 앱 창의 관찰값입니다.
 
 ## Floating toolbar / One UI
 
