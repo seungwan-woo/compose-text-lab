@@ -151,6 +151,12 @@ fun LabApp() {
                     }
                     key(tab) {
                         val workspace: ShowComparison = { tabControls, preview ->
+                            val comparisonControls: @Composable () -> Unit = {
+                                ChoiceRow("Comparison layout", PanelLayout.entries, s.panelLayout) {
+                                    change(s.copy(panelLayout = it))
+                                }
+                                tabControls?.invoke()
+                            }
                             LabWorkspace(showSettings, settings = {
                                 SettingsControls(s, importedFont?.displayName, importing || !fontRestored,
                                     onChange = ::change,
@@ -162,12 +168,7 @@ fun LabApp() {
                                 TextButton(onClick = { change(LabSettings()); status = "Settings reset" }) {
                                     Text("Reset settings")
                                 }
-                            }, controls = if (tab == LabTab.Report) null else @Composable {
-                                ChoiceRow("Comparison layout", PanelLayout.entries, s.panelLayout) {
-                                    change(s.copy(panelLayout = it))
-                                }
-                                tabControls?.invoke()
-                            }) {
+                            }, controls = if (tab == LabTab.Report) null else comparisonControls) {
                                 if (status.isNotBlank()) Text(status, style = MaterialTheme.typography.bodySmall)
                                 Text("System fontScale ${configuration.fontScale} · Preview ${previewConfiguration.fontScale} · API $sdkFull",
                                     style = MaterialTheme.typography.labelMedium)
