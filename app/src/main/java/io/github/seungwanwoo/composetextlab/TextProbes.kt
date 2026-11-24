@@ -312,6 +312,7 @@ internal class MeasuredTextView(context: Context) : TextView(context) {
         if (s.effect == TextEffect.VariableFont) setVariableFont(VariableAxes.at(playback?.fontStep ?: 0))
         if (s.effect == TextEffect.Motion) {
             paint.isSubpixelText = s.effectSettings.animatedTextMotion
+            paint.isLinearText = s.effectSettings.animatedTextMotion
             paint.hinting = if (s.effectSettings.animatedTextMotion) Paint.HINTING_OFF else Paint.HINTING_ON
         }
         setTextSize(TypedValue.COMPLEX_UNIT_SP, s.fontSizeSp)
@@ -337,7 +338,9 @@ internal class MeasuredTextView(context: Context) : TextView(context) {
         if (s.effect == TextEffect.Shadow) {
             val d = resources.displayMetrics.density
             val offset = s.effectSettings.shadowOffsetDp * d
-            setShadowLayer(s.effectSettings.shadowRadiusDp * d, offset, offset, android.graphics.Color.GRAY)
+            // Android Paint disables the shadow at zero. Compose keeps an effectively sharp shadow.
+            val radius = (s.effectSettings.shadowRadiusDp * d).coerceAtLeast(Float.MIN_VALUE)
+            setShadowLayer(radius, offset, offset, android.graphics.Color.GRAY)
             if (Build.VERSION.SDK_INT < 28) setLayerType(LAYER_TYPE_SOFTWARE, null)
         }
         if (s.effect == TextEffect.Stroke) {
