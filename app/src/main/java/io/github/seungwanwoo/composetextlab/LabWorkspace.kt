@@ -37,6 +37,7 @@ internal fun LabWorkspace(
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val dockSettings = showSettings && maxWidth >= 1100.dp
         val controlsBelow = !dockSettings && (showSettings || controls != null)
+        val controlsMaxHeight = maxHeight * (if (showSettings) 0.45f else 0.32f)
         val options: @Composable ColumnScope.() -> Unit = {
             controls?.invoke()
             if (showSettings) settings()
@@ -61,9 +62,8 @@ internal fun LabWorkspace(
                 if (controlsBelow) {
                     HorizontalDivider()
                     // Short control lists use less space. The preview can reflow independently.
-                    val controlsFraction = if (showSettings) 0.45f else 0.32f
                     Column(
-                        Modifier.fillMaxWidth().heightIn(max = maxHeight * controlsFraction)
+                        Modifier.fillMaxWidth().heightIn(max = controlsMaxHeight)
                             .verticalScroll(settingsScroll).padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         content = options,
